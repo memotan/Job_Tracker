@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>就活メモ帳</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700&family=Shippori+Mincho:wght@400;600&display=swap');
+  :root {
+    --ink:#1a1a2e;--paper:#f5f0e8;--cream:#ede8dc;--accent:#8b5e3c;
+    --accent-light:#c4956a;--line:#d4c9b0;--ok:#4a7c59;--warn:#c0392b;
+    --tag-bg:#e8e0d0;--shadow:rgba(139,94,60,0.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Zen Kaku Gothic New',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;}
+  header{background:var(--ink);color:var(--paper);padding:20px 28px 16px;display:flex;align-items:baseline;gap:12px;}
+  header h1{font-family:'Shippori Mincho',serif;font-size:1.4rem;letter-spacing:0.1em;}
+  header span{font-size:0.75rem;opacity:0.55;}
+  nav{background:var(--cream);border-bottom:1px solid var(--line);padding:0 20px;display:flex;}
+  nav button{background:none;border:none;border-bottom:3px solid transparent;padding:12px 18px;cursor:pointer;font-family:inherit;font-size:0.85rem;color:var(--ink);opacity:0.55;transition:all 0.2s;}
+  nav button.active{opacity:1;border-bottom-color:var(--accent);font-weight:700;}
+  main{padding:24px 20px;max-width:900px;margin:0 auto;}
+  .page{display:none;}.page.active{display:block;}
+  .setup-box{background:#fffbe8;border:1px solid #e0d080;border-radius:6px;padding:14px 16px;margin-bottom:20px;font-size:0.83rem;line-height:1.8;}
+  .setup-box summary{cursor:pointer;font-weight:700;font-size:0.85rem;}
+  .setup-url-row{display:flex;gap:8px;margin-top:10px;}
+  .setup-url-row input{flex:1;font-family:inherit;font-size:0.82rem;border:1px solid var(--line);border-radius:4px;padding:6px 10px;}
+  .btn-sm{background:var(--accent);color:white;border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:0.8rem;font-weight:700;white-space:nowrap;}
+  .url-status{font-size:0.75rem;margin-top:4px;}
+  .url-status.ok{color:var(--ok);}.url-status.err{color:var(--warn);}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+  .company-count{font-size:0.8rem;opacity:0.5;}
+  .btn-primary{background:var(--accent);color:white;border:none;padding:9px 20px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:0.85rem;font-weight:700;letter-spacing:0.05em;transition:background 0.2s;}
+  .btn-primary:hover{background:var(--accent-light);}.btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
+  .sort-bar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+  .sort-bar label{font-size:0.75rem;opacity:0.5;}
+  .sort-bar select{font-family:inherit;font-size:0.78rem;padding:4px 8px;border:1px solid var(--line);border-radius:4px;background:white;cursor:pointer;}
+  .card-list{display:flex;flex-direction:column;gap:10px;}
+  .card{background:white;border:1px solid var(--line);border-left:4px solid var(--line);border-radius:6px;padding:14px 16px;cursor:pointer;transition:box-shadow 0.2s,border-left-color 0.2s;}
+  .card:hover{box-shadow:0 3px 12px var(--shadow);}
+  .card.priority-high{border-left-color:var(--accent);}.card.priority-mid{border-left-color:var(--accent-light);}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .card-name{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:600;}
+  .card-industry{font-size:0.72rem;background:var(--tag-bg);padding:2px 8px;border-radius:99px;white-space:nowrap;margin-top:2px;}
+  .card-meta{display:flex;gap:14px;margin-top:8px;flex-wrap:wrap;}
+  .card-meta-item{font-size:0.75rem;opacity:0.65;display:flex;gap:4px;align-items:center;}
+  .stars{color:var(--accent);letter-spacing:-1px;font-size:0.85rem;}
+  .status-badge{font-size:0.7rem;padding:2px 8px;border-radius:99px;font-weight:700;letter-spacing:0.04em;}
+  .status-0{background:#eee;color:#888;}.status-1{background:#dceeff;color:#2060a0;}
+  .status-2{background:#fff3cd;color:#856404;}.status-3{background:#d4edda;color:#155724;}
+  .status-4{background:#f8d7da;color:#721c24;}
+  .empty-state{text-align:center;padding:60px 20px;opacity:0.4;font-size:0.9rem;line-height:2;}
+  .loading{text-align:center;padding:40px;opacity:0.4;font-size:0.85rem;}
+  .form-header{display:flex;gap:10px;margin-bottom:24px;align-items:center;}
+  .btn-back{background:none;border:1px solid var(--line);padding:6px 12px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:0.8rem;color:var(--ink);transition:background 0.15s;}
+  .btn-back:hover{background:var(--cream);}
+  .form-title{font-family:'Shippori Mincho',serif;font-size:1.15rem;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:600px){.form-grid{grid-template-columns:1fr;}}
+  .form-full{grid-column:1/-1;}
+  .form-group{display:flex;flex-direction:column;gap:5px;}
+  .form-group label{font-size:0.75rem;font-weight:700;letter-spacing:0.06em;opacity:0.6;text-transform:uppercase;}
+  .form-group input,.form-group select,.form-group textarea{font-family:inherit;font-size:0.9rem;border:1px solid var(--line);border-radius:4px;padding:8px 10px;background:white;color:var(--ink);transition:border-color 0.15s;}
+  .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--accent-light);}
+  .form-group textarea{resize:vertical;min-height:80px;}
+  .star-rating{display:flex;flex-direction:row-reverse;gap:4px;}
+  .star-rating input{display:none;}
+  .star-rating label{font-size:1.4rem;color:var(--line);cursor:pointer;transition:color 0.1s;text-transform:none;letter-spacing:0;opacity:1;font-weight:400;}
+  .star-rating input:checked~label,.star-rating label:hover,.star-rating label:hover~label{color:var(--accent);}
+  .form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:24px;padding-top:16px;border-top:1px solid var(--line);}
+  .btn-danger{background:none;border:1px solid #e0b0b0;color:var(--warn);padding:8px 16px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:0.85rem;margin-right:auto;}
+  .btn-danger:hover{background:#fff0f0;}
+  .section-divider{grid-column:1/-1;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;opacity:0.4;text-transform:uppercase;padding-top:8px;border-top:1px solid var(--line);}
+  .compare-hint{font-size:0.8rem;opacity:0.5;margin-bottom:16px;}
+  .compare-table-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:0.82rem;min-width:560px;}
+  th,td{padding:10px 12px;border:1px solid var(--line);text-align:left;vertical-align:top;}
+  th{background:var(--ink);color:var(--paper);font-weight:400;letter-spacing:0.05em;white-space:nowrap;}
+  tr:nth-child(even) td{background:var(--cream);}
+  td.company-name-cell{font-family:'Shippori Mincho',serif;font-weight:600;white-space:nowrap;cursor:pointer;color:var(--accent);}
+  td.company-name-cell:hover{text-decoration:underline;}
+  .rating-cell{color:var(--accent);}
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 20px;border-radius:20px;font-size:0.82rem;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:999;}
+  #toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<header>
+  <h1>就活メモ帳</h1><span id="user-name" style="font-size:0.85rem;opacity:0.75;font-family:'Zen Kaku Gothic New',sans-serif;font-weight:400;"></span>
+  <span>障害者雇用 求人整理ツール</span>
+</header>
+<nav>
+  <button class="active" onclick="showPage('list')">一覧</button>
+  <button onclick="showPage('compare')">比較表</button>
+</nav>
+<main>
+  <!-- 一覧 -->
+  <div id="page-list" class="page active">
+    <details class="setup-box" id="setup-details">
+      <summary>⚙ 設定</summary>
+      <div style="margin-top:8px;line-height:2;">GASのURLとスプレッドシートIDを入力してください。</div>
+      <div class="setup-url-row">
+        <input type="text" id="gas-url-input" placeholder="GAS WebアプリのURL（https://script.google.com/macros/s/...）" style="font-size:0.78rem;">
+        <button class="btn-sm" onclick="saveSettings()">保存</button>
+      </div>
+      <div class="setup-url-row" style="margin-top:6px;">
+        <input type="text" id="sheet-id-input" placeholder="スプレッドシートID（URLの /d/〇〇〇/ の部分）" style="font-size:0.78rem;">
+      </div>
+      <div class="url-status" id="url-status"></div>
+    </details>
+    <div class="toolbar">
+      <span class="company-count" id="company-count"></span>
+      <button class="btn-primary" id="btn-add" onclick="openForm()" disabled>＋ 企業を追加</button>
+    </div>
+    <div class="sort-bar">
+      <label>並び替え</label>
+      <select id="sort-select" onchange="renderList()">
+        <option value="updated">更新順</option>
+        <option value="name">企業名順</option>
+        <option value="overall">総合評価順</option>
+        <option value="status">選考状況順</option>
+      </select>
+    </div>
+    <div id="card-list" class="card-list"></div>
+  </div>
+
+  <!-- フォーム -->
+  <div id="page-form" class="page">
+    <div class="form-header">
+      <button class="btn-back" onclick="showPage('list')">← 一覧へ</button>
+      <span class="form-title" id="form-title">企業を追加</span>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label>企業名 *</label><input type="text" id="f-name" placeholder="例：株式会社〇〇"></div>
+      <div class="form-group"><label>業界</label><input type="text" id="f-industry" placeholder="例：IT・通信、製造、医療…"></div>
+      <div class="form-group"><label>勤務地</label><input type="text" id="f-location" placeholder="例：東京都新宿区（リモート可）"></div>
+      <div class="form-group"><label>雇用形態</label>
+        <select id="f-employment"><option value="">─</option><option>正社員（障害者雇用）</option><option>契約社員</option><option>パート・アルバイト</option><option>その他</option></select>
+      </div>
+      <div class="form-group"><label>給与・待遇メモ</label><input type="text" id="f-salary" placeholder="例：月16〜20万、交通費全額…"></div>
+      <div class="form-group"><label>選考状況</label>
+        <select id="f-status"><option value="0">未応募</option><option value="1">書類選考中</option><option value="2">面接調整中・面接済</option><option value="3">内定</option><option value="4">不採用・辞退</option></select>
+      </div>
+      <div class="section-divider">業務内容</div>
+      <div class="form-group form-full"><label>業務内容・職種</label><textarea id="f-work" placeholder="どんな仕事か、自分に向いているか、など"></textarea></div>
+      <div class="form-group"><label>業務内容の評価</label>
+        <div class="star-rating"><input type="radio" name="sr-work" id="sr-work-5" value="5"><label for="sr-work-5">★</label><input type="radio" name="sr-work" id="sr-work-4" value="4"><label for="sr-work-4">★</label><input type="radio" name="sr-work" id="sr-work-3" value="3"><label for="sr-work-3">★</label><input type="radio" name="sr-work" id="sr-work-2" value="2"><label for="sr-work-2">★</label><input type="radio" name="sr-work" id="sr-work-1" value="1"><label for="sr-work-1">★</label></div>
+      </div>
+      <div class="section-divider">企業イメージ・風土</div>
+      <div class="form-group form-full"><label>企業イメージ・風土メモ</label><textarea id="f-culture" placeholder="HPや口コミから感じる雰囲気、働きやすさ、など"></textarea></div>
+      <div class="form-group"><label>企業イメージの評価</label>
+        <div class="star-rating"><input type="radio" name="sr-culture" id="sr-culture-5" value="5"><label for="sr-culture-5">★</label><input type="radio" name="sr-culture" id="sr-culture-4" value="4"><label for="sr-culture-4">★</label><input type="radio" name="sr-culture" id="sr-culture-3" value="3"><label for="sr-culture-3">★</label><input type="radio" name="sr-culture" id="sr-culture-2" value="2"><label for="sr-culture-2">★</label><input type="radio" name="sr-culture" id="sr-culture-1" value="1"><label for="sr-culture-1">★</label></div>
+      </div>
+      <div class="section-divider">待遇・配慮</div>
+      <div class="form-group form-full"><label>待遇・合理的配慮メモ</label><textarea id="f-support" placeholder="障害への配慮内容、フレックス・休暇・福利厚生、など"></textarea></div>
+      <div class="form-group"><label>待遇・配慮の評価</label>
+        <div class="star-rating"><input type="radio" name="sr-support" id="sr-support-5" value="5"><label for="sr-support-5">★</label><input type="radio" name="sr-support" id="sr-support-4" value="4"><label for="sr-support-4">★</label><input type="radio" name="sr-support" id="sr-support-3" value="3"><label for="sr-support-3">★</label><input type="radio" name="sr-support" id="sr-support-2" value="2"><label for="sr-support-2">★</label><input type="radio" name="sr-support" id="sr-support-1" value="1"><label for="sr-support-1">★</label></div>
+      </div>
+      <div class="section-divider">総合</div>
+      <div class="form-group"><label>総合評価</label>
+        <div class="star-rating"><input type="radio" name="sr-overall" id="sr-overall-5" value="5"><label for="sr-overall-5">★</label><input type="radio" name="sr-overall" id="sr-overall-4" value="4"><label for="sr-overall-4">★</label><input type="radio" name="sr-overall" id="sr-overall-3" value="3"><label for="sr-overall-3">★</label><input type="radio" name="sr-overall" id="sr-overall-2" value="2"><label for="sr-overall-2">★</label><input type="radio" name="sr-overall" id="sr-overall-1" value="1"><label for="sr-overall-1">★</label></div>
+      </div>
+      <div class="form-group"><label>応募優先度</label>
+        <select id="f-priority"><option value="0">─ 未設定</option><option value="high">高 ★★★</option><option value="mid">中 ★★</option><option value="low">低 ★</option></select>
+      </div>
+      <div class="form-group form-full"><label>自由メモ（気になること・懸念点など）</label><textarea id="f-memo" placeholder="面接で確認したいこと、直感、懸念点…"></textarea></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-danger" id="btn-delete" onclick="deleteCompany()" style="display:none">削除</button>
+      <button class="btn-back" onclick="showPage('list')">キャンセル</button>
+      <button class="btn-primary" onclick="saveCompany()">保存</button>
+    </div>
+  </div>
+
+  <!-- 比較表 -->
+  <div id="page-compare" class="page">
+    <p class="compare-hint">登録済み企業の比較表です。企業名をクリックすると詳細を編集できます。</p>
+    <div class="compare-table-wrap">
+      <table>
+        <thead><tr><th>企業名</th><th>業界</th><th>勤務地</th><th>給与メモ</th><th>業務内容</th><th>企業イメージ</th><th>待遇・配慮</th><th>総合</th><th>優先度</th><th>選考状況</th></tr></thead>
+        <tbody id="compare-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+<div id="toast"></div>
+
+<script>
+const STATUS_LABELS=['未応募','書類選考中','面接中','内定','不採用・辞退'];
+const PRIORITY_LABELS={high:'高',mid:'中',low:'低'};
+const GAS_URL_KEY='shushoku_gas_url';
+const SHEET_ID_KEY='shushoku_sheet_id';
+let companies=[],editingId=null,gasUrl='',sheetId='';
+
+window.onload=()=>{
+  gasUrl=localStorage.getItem(GAS_URL_KEY)||'';
+  sheetId=localStorage.getItem(SHEET_ID_KEY)||'';
+  if(gasUrl&&sheetId){
+    document.getElementById('gas-url-input').value=gasUrl;
+    document.getElementById('sheet-id-input').value=sheetId;
+    enableTool();loadFromSheet();
+  }else{
+    document.getElementById('setup-details').setAttribute('open','');
+    document.getElementById('card-list').innerHTML='<div class="empty-state">上の設定欄にGAS URLとスプレッドシートIDを入力してください。</div>';
+  }
+};
+
+function saveSettings(){
+  const url=document.getElementById('gas-url-input').value.trim();
+  const sid=document.getElementById('sheet-id-input').value.trim();
+  if(!url.startsWith('https://script.google.com')){setUrlStatus('GAS URLが正しくないようです。',false);return;}
+  if(!sid){setUrlStatus('スプレッドシートIDを入力してください。',false);return;}
+  gasUrl=url;sheetId=sid;
+  localStorage.setItem(GAS_URL_KEY,gasUrl);
+  localStorage.setItem(SHEET_ID_KEY,sheetId);
+  setUrlStatus('保存しました。接続を確認中…',null);enableTool();loadFromSheet();
+}
+function setUrlStatus(msg,ok){
+  const el=document.getElementById('url-status');el.textContent=msg;
+  el.className='url-status'+(ok===true?' ok':ok===false?' err':'');
+}
+function enableTool(){document.getElementById('btn-add').disabled=false;}
+
+async function api(payload){
+  const res=await fetch(gasUrl,{method:'POST',body:JSON.stringify({...payload,sheetId})});
+  return res.json();
+}
+
+async function loadFromSheet(){
+  document.getElementById('card-list').innerHTML='<div class="loading">読み込み中…</div>';
+  try{
+    const result=await api({action:'getAll'});
+    if(result.error)throw new Error(result.error);
+    if(result.sheetName){document.getElementById('user-name').textContent=result.sheetName+' さんの記録';}
+    companies=result.companies.map(c=>({...c,rWork:Number(c.rWork)||0,rCulture:Number(c.rCulture)||0,rSupport:Number(c.rSupport)||0,rOverall:Number(c.rOverall)||0,updatedAt:Number(c.updatedAt)||0}));
+    setUrlStatus('接続OK',true);renderList();
+  }catch(e){
+    setUrlStatus('接続に失敗しました：'+e.message,false);
+    document.getElementById('card-list').innerHTML='<div class="empty-state">スプレッドシートへの接続に失敗しました。<br>URLと公開設定を確認してください。</div>';
+  }
+}
+
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(name==='list'){renderList();document.querySelectorAll('nav button')[0].classList.add('active');}
+  if(name==='compare'){renderCompare();document.querySelectorAll('nav button')[1].classList.add('active');}
+}
+
+function getStars(name){const el=document.querySelector(`input[name="${name}"]:checked`);return el?parseInt(el.value):0;}
+function setStars(name,val){document.querySelectorAll(`input[name="${name}"]`).forEach(r=>r.checked=false);if(val){const t=document.querySelector(`input[name="${name}"][value="${val}"]`);if(t)t.checked=true;}}
+function renderStars(n){return n?'★'.repeat(n)+'☆'.repeat(5-n):'─';}
+
+function openForm(id){
+  editingId=id||null;
+  document.getElementById('form-title').textContent=id?'企業を編集':'企業を追加';
+  document.getElementById('btn-delete').style.display=id?'inline-block':'none';
+  ['name','industry','location','salary','work','culture','support','memo'].forEach(f=>document.getElementById('f-'+f).value='');
+  document.getElementById('f-employment').value='';
+  document.getElementById('f-status').value='0';
+  document.getElementById('f-priority').value='0';
+  ['work','culture','support','overall'].forEach(n=>setStars('sr-'+n,0));
+  if(id){
+    const c=companies.find(x=>x.id===id);
+    if(c){
+      ['name','industry','location','employment','salary','work','culture','support','memo'].forEach(f=>{const el=document.getElementById('f-'+f);if(el)el.value=c[f]||'';});
+      document.getElementById('f-status').value=c.status??'0';
+      document.getElementById('f-priority').value=c.priority||'0';
+      setStars('sr-work',c.rWork);setStars('sr-culture',c.rCulture);setStars('sr-support',c.rSupport);setStars('sr-overall',c.rOverall);
+    }
+  }
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-form').classList.add('active');
+}
+
+async function saveCompany(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){alert('企業名を入力してください。');return;}
+  const data={
+    id:editingId||(Date.now().toString(36)+Math.random().toString(36).slice(2)),
+    updatedAt:Date.now(),name,
+    industry:document.getElementById('f-industry').value.trim(),
+    location:document.getElementById('f-location').value.trim(),
+    employment:document.getElementById('f-employment').value,
+    salary:document.getElementById('f-salary').value.trim(),
+    status:document.getElementById('f-status').value,
+    work:document.getElementById('f-work').value.trim(),
+    culture:document.getElementById('f-culture').value.trim(),
+    support:document.getElementById('f-support').value.trim(),
+    memo:document.getElementById('f-memo').value.trim(),
+    priority:document.getElementById('f-priority').value,
+    rWork:getStars('sr-work'),rCulture:getStars('sr-culture'),rSupport:getStars('sr-support'),rOverall:getStars('sr-overall'),
+  };
+  showToast('保存中…');
+  try{
+    const result=await api({action:'save',data});
+    if(result.error)throw new Error(result.error);
+    if(editingId){const idx=companies.findIndex(x=>x.id===editingId);if(idx>=0)companies[idx]=data;else companies.push(data);}
+    else companies.push(data);
+    showToast('保存しました');showPage('list');
+  }catch(e){showToast('保存に失敗しました：'+e.message);}
+}
+
+async function deleteCompany(){
+  if(!editingId)return;
+  const c=companies.find(x=>x.id===editingId);
+  if(!confirm(`「${c?.name||''}」を削除しますか？`))return;
+  showToast('削除中…');
+  try{
+    const result=await api({action:'delete',id:editingId});
+    if(result.error)throw new Error(result.error);
+    companies=companies.filter(x=>x.id!==editingId);
+    showToast('削除しました');showPage('list');
+  }catch(e){showToast('削除に失敗しました：'+e.message);}
+}
+
+function renderList(){
+  const sortKey=document.getElementById('sort-select').value;
+  const sorted=[...companies].sort((a,b)=>{
+    if(sortKey==='name')return a.name.localeCompare(b.name,'ja');
+    if(sortKey==='overall')return(b.rOverall||0)-(a.rOverall||0);
+    if(sortKey==='status')return(a.status||0)-(b.status||0);
+    return b.updatedAt-a.updatedAt;
+  });
+  document.getElementById('company-count').textContent=`${companies.length} 社登録済み`;
+  const list=document.getElementById('card-list');
+  if(!sorted.length){list.innerHTML='<div class="empty-state">まだ企業が登録されていません。<br>「＋ 企業を追加」から始めましょう。</div>';return;}
+  list.innerHTML=sorted.map(c=>{
+    const priorClass=c.priority==='high'?'priority-high':c.priority==='mid'?'priority-mid':'';
+    const statusN=parseInt(c.status)||0;
+    return`<div class="card ${priorClass}" onclick="openForm('${c.id}')">
+      <div class="card-top"><div><div class="card-name">${esc(c.name)}</div>${c.industry?`<span class="card-industry">${esc(c.industry)}</span>`:''}</div>
+      <span class="status-badge status-${statusN}">${STATUS_LABELS[statusN]}</span></div>
+      <div class="card-meta">
+        ${c.location?`<span class="card-meta-item">📍 ${esc(c.location)}</span>`:''}
+        ${c.rOverall?`<span class="card-meta-item">総合 <span class="stars">${renderStars(c.rOverall)}</span></span>`:''}
+        ${c.priority&&c.priority!=='0'?`<span class="card-meta-item">優先度：${PRIORITY_LABELS[c.priority]}</span>`:''}
+      </div></div>`;
+  }).join('');
+}
+
+function renderCompare(){
+  const tbody=document.getElementById('compare-tbody');
+  if(!companies.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;opacity:0.4;padding:40px">登録された企業がありません</td></tr>';return;}
+  tbody.innerHTML=companies.map(c=>`<tr>
+    <td class="company-name-cell" onclick="openForm('${c.id}')">${esc(c.name)}</td>
+    <td>${esc(c.industry)}</td><td>${esc(c.location)}</td><td>${esc(c.salary)}</td>
+    <td class="rating-cell">${renderStars(c.rWork)}</td><td class="rating-cell">${renderStars(c.rCulture)}</td>
+    <td class="rating-cell">${renderStars(c.rSupport)}</td><td class="rating-cell">${renderStars(c.rOverall)}</td>
+    <td>${c.priority&&c.priority!=='0'?PRIORITY_LABELS[c.priority]:'─'}</td>
+    <td><span class="status-badge status-${parseInt(c.status)||0}">${STATUS_LABELS[parseInt(c.status)||0]}</span></td>
+  </tr>`).join('');
+}
+
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),2500);}
+</script>
+</body>
+</html>
