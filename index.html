@@ -19,7 +19,7 @@
   nav{background:var(--cream);border-bottom:1px solid var(--line);padding:0 20px;display:flex;}
   nav button{background:none;border:none;border-bottom:3px solid transparent;padding:12px 18px;cursor:pointer;font-family:inherit;font-size:0.85rem;color:var(--ink);opacity:0.55;transition:all 0.2s;}
   nav button.active{opacity:1;border-bottom-color:var(--accent);font-weight:700;}
-  main{padding:24px 20px;max-width:900px;margin:0 auto;}
+  main{padding:24px 20px;max-width:1200px;margin:0 auto;}
   .page{display:none;}.page.active{display:block;}
   .setup-box{background:#fffbe8;border:1px solid #e0d080;border-radius:6px;padding:14px 16px;margin-bottom:20px;font-size:0.83rem;line-height:1.8;}
   .setup-box summary{cursor:pointer;font-weight:700;font-size:0.85rem;}
@@ -46,9 +46,9 @@
   .card-meta-item{font-size:0.75rem;opacity:0.65;display:flex;gap:4px;align-items:center;}
   .stars{color:var(--accent);letter-spacing:-1px;font-size:0.85rem;}
   .status-badge{font-size:0.7rem;padding:2px 8px;border-radius:99px;font-weight:700;letter-spacing:0.04em;}
-  .status-0{background:#eee;color:#888;}.status-1{background:#dceeff;color:#2060a0;}
-  .status-2{background:#fff3cd;color:#856404;}.status-3{background:#d4edda;color:#155724;}
-  .status-4{background:#f8d7da;color:#721c24;}
+  .status-0{background:#e8e0f0;color:#6040a0;}.status-1{background:#eee;color:#888;}
+  .status-2{background:#dceeff;color:#2060a0;}.status-3{background:#fff3cd;color:#856404;}
+  .status-4{background:#d4edda;color:#155724;}.status-5{background:#f8d7da;color:#721c24;}
   .empty-state{text-align:center;padding:60px 20px;opacity:0.4;font-size:0.9rem;line-height:2;}
   .loading{text-align:center;padding:40px;opacity:0.4;font-size:0.85rem;}
   .form-header{display:flex;gap:10px;margin-bottom:24px;align-items:center;}
@@ -73,7 +73,18 @@
   .section-divider{grid-column:1/-1;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;opacity:0.4;text-transform:uppercase;padding-top:8px;border-top:1px solid var(--line);}
   .compare-hint{font-size:0.8rem;opacity:0.5;margin-bottom:16px;}
   .compare-table-wrap{overflow-x:auto;}
-  table{width:100%;border-collapse:collapse;font-size:0.82rem;min-width:560px;}
+  .compare-table-wrap table th:nth-child(1){width:22%;}
+  .compare-table-wrap table th:nth-child(2){width:10%;}
+  .compare-table-wrap table th:nth-child(3){width:12%;}
+  .compare-table-wrap table th:nth-child(4){width:10%;}
+  .compare-table-wrap table th:nth-child(5){width:6%;}
+  .compare-table-wrap table th:nth-child(6){width:7%;}
+  .compare-table-wrap table th:nth-child(7){width:6%;}
+  .compare-table-wrap table th:nth-child(8){width:6%;}
+  .compare-table-wrap table th:nth-child(9){width:6%;}
+  .compare-table-wrap table th:nth-child(10){width:9%;}
+  td{word-break:break-all;}
+  table{width:100%;border-collapse:collapse;font-size:0.82rem;table-layout:fixed;}
   th,td{padding:10px 12px;border:1px solid var(--line);text-align:left;vertical-align:top;}
   th{background:var(--ink);color:var(--paper);font-weight:400;letter-spacing:0.05em;white-space:nowrap;}
   tr:nth-child(even) td{background:var(--cream);}
@@ -87,7 +98,7 @@
 <body>
 <header>
   <h1>就活メモ帳</h1><span id="user-name" style="font-size:0.85rem;opacity:0.75;font-family:'Zen Kaku Gothic New',sans-serif;font-weight:400;"></span>
-  <span>求人整理ツール</span>
+  <span>障害者雇用 求人整理ツール</span>
 </header>
 <nav>
   <button class="active" onclick="showPage('list')">一覧</button>
@@ -131,6 +142,7 @@
       <span class="form-title" id="form-title">企業を追加</span>
     </div>
     <div class="form-grid">
+      <div class="form-group form-full"><label>採用ページ・企業HP URL</label><input type="url" id="f-url" placeholder="https://..."></div>
       <div class="form-group"><label>企業名 *</label><input type="text" id="f-name" placeholder="例：株式会社〇〇"></div>
       <div class="form-group"><label>業界</label><input type="text" id="f-industry" placeholder="例：IT・通信、製造、医療…"></div>
       <div class="form-group"><label>勤務地</label><input type="text" id="f-location" placeholder="例：東京都新宿区（リモート可）"></div>
@@ -139,7 +151,7 @@
       </div>
       <div class="form-group"><label>給与・待遇メモ</label><input type="text" id="f-salary" placeholder="例：月16〜20万、交通費全額…"></div>
       <div class="form-group"><label>選考状況</label>
-        <select id="f-status"><option value="0">未応募</option><option value="1">書類選考中</option><option value="2">面接調整中・面接済</option><option value="3">内定</option><option value="4">不採用・辞退</option></select>
+        <select id="f-status"><option value="0">検討中</option><option value="1">未応募</option><option value="2">書類選考中</option><option value="3">面接調整中・面接済</option><option value="4">内定</option><option value="5">不採用・辞退</option></select>
       </div>
       <div class="section-divider">業務内容</div>
       <div class="form-group form-full"><label>業務内容・職種</label><textarea id="f-work" placeholder="どんな仕事か、自分に向いているか、など"></textarea></div>
@@ -186,7 +198,7 @@
 <div id="toast"></div>
 
 <script>
-const STATUS_LABELS=['未応募','書類選考中','面接中','内定','不採用・辞退'];
+const STATUS_LABELS=['検討中','未応募','書類選考中','面接中','内定','不採用・辞退'];
 const PRIORITY_LABELS={high:'高',mid:'中',low:'低'};
 const GAS_URL_KEY='shushoku_gas_url';
 const SHEET_ID_KEY='shushoku_sheet_id';
@@ -256,7 +268,7 @@ function openForm(id){
   editingId=id||null;
   document.getElementById('form-title').textContent=id?'企業を編集':'企業を追加';
   document.getElementById('btn-delete').style.display=id?'inline-block':'none';
-  ['name','industry','location','salary','work','culture','support','memo'].forEach(f=>document.getElementById('f-'+f).value='');
+  ['name','industry','location','salary','work','culture','support','memo','url'].forEach(f=>document.getElementById('f-'+f).value='');
   document.getElementById('f-employment').value='';
   document.getElementById('f-status').value='0';
   document.getElementById('f-priority').value='0';
@@ -264,7 +276,7 @@ function openForm(id){
   if(id){
     const c=companies.find(x=>x.id===id);
     if(c){
-      ['name','industry','location','employment','salary','work','culture','support','memo'].forEach(f=>{const el=document.getElementById('f-'+f);if(el)el.value=c[f]||'';});
+      ['name','industry','location','employment','salary','work','culture','support','memo','url'].forEach(f=>{const el=document.getElementById('f-'+f);if(el)el.value=c[f]||'';});
       document.getElementById('f-status').value=c.status??'0';
       document.getElementById('f-priority').value=c.priority||'0';
       setStars('sr-work',c.rWork);setStars('sr-culture',c.rCulture);setStars('sr-support',c.rSupport);setStars('sr-overall',c.rOverall);
@@ -344,7 +356,7 @@ function renderCompare(){
   const tbody=document.getElementById('compare-tbody');
   if(!companies.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;opacity:0.4;padding:40px">登録された企業がありません</td></tr>';return;}
   tbody.innerHTML=companies.map(c=>`<tr>
-    <td class="company-name-cell" onclick="openForm('${c.id}')">${esc(c.name)}</td>
+    <td class="company-name-cell" onclick="openForm('${c.id}')">${esc(c.name)}${c.url?` <a href="${esc(c.url)}" target="_blank" onclick="event.stopPropagation()" style="font-size:0.7rem;opacity:0.6;font-family:sans-serif;">🔗</a>`:''}</td>
     <td>${esc(c.industry)}</td><td>${esc(c.location)}</td><td>${esc(c.salary)}</td>
     <td class="rating-cell">${renderStars(c.rWork)}</td><td class="rating-cell">${renderStars(c.rCulture)}</td>
     <td class="rating-cell">${renderStars(c.rSupport)}</td><td class="rating-cell">${renderStars(c.rOverall)}</td>
