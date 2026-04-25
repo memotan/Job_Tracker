@@ -88,9 +88,9 @@
   th,td{padding:10px 12px;border:1px solid var(--line);text-align:left;vertical-align:top;}
   th{background:var(--ink);color:var(--paper);font-weight:400;letter-spacing:0.05em;white-space:nowrap;}
   tr:nth-child(even) td{background:var(--cream);}
-  td.company-name-cell{font-family:'Shippori Mincho',serif;font-weight:600;white-space:nowrap;cursor:pointer;color:var(--accent);}
+  td.company-name-cell{font-family:'Shippori Mincho',serif;font-weight:600;white-space:normal;word-break:break-all;cursor:pointer;color:var(--accent);}
   td.company-name-cell:hover{text-decoration:underline;}
-  .rating-cell{color:var(--accent);}
+  .rating-cell{color:var(--accent);white-space:nowrap;}
   #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 20px;border-radius:20px;font-size:0.82rem;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:999;}
   #toast.show{opacity:1;}
 </style>
