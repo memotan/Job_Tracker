@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>就活メモ帳</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@300;400;700&family=Shippori+Mincho:wght@400;600&display=swap');
+  :root{--ink:#1a1a2e;--paper:#f5f0e8;--cream:#ede8dc;--accent:#8b5e3c;--accent-light:#c4956a;--line:#d4c9b0;--ok:#4a7c59;--warn:#c0392b;--tag-bg:#e8e0d0;--shadow:rgba(139,94,60,0.12);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Zen Kaku Gothic New',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;}
+
+  /* ログイン画面 */
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .login-box{background:white;border:1px solid var(--line);border-radius:8px;padding:40px 36px;width:100%;max-width:380px;box-shadow:0 4px 24px var(--shadow);}
+  .login-title{font-family:'Shippori Mincho',serif;font-size:1.4rem;text-align:center;margin-bottom:6px;}
+  .login-sub{font-size:0.78rem;text-align:center;opacity:0.45;margin-bottom:28px;}
+  .login-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+  .login-group label{font-size:0.75rem;font-weight:700;letter-spacing:0.06em;opacity:0.55;}
+  .login-group input{font-family:inherit;font-size:0.9rem;border:1px solid var(--line);border-radius:4px;padding:9px 12px;}
+  .login-group input:focus{outline:none;border-color:var(--accent-light);}
+  .login-error{font-size:0.78rem;color:var(--warn);margin-bottom:10px;min-height:1.2em;}
+  .btn-login{width:100%;background:var(--ink);color:var(--paper);border:none;padding:11px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:0.9rem;font-weight:700;letter-spacing:0.05em;margin-top:4px;transition:opacity 0.2s;}
+  .btn-login:hover{opacity:0.85;}
+  .setup-toggle{text-align:center;margin-top:18px;font-size:0.75rem;opacity:0.4;cursor:pointer;}
+  .setup-toggle:hover{opacity:0.7;}
+  .setup-area{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:none;}
+  .setup-area.open{display:block;}
+  .setup-area input{width:100%;font-family:inherit;font-size:0.78rem;border:1px solid var(--line);border-radius:4px;padding:7px 10px;margin-bottom:8px;}
+  .btn-sm{background:var(--accent);color:white;border:none;padding:6px 14px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:0.8rem;font-weight:700;}
+  .url-status{font-size:0.73rem;margin-top:2px;}
+  .url-status.ok{color:var(--ok);}.url-status.err{color:var(--warn);}
+
+  /* ヘッダー */
+  header{background:var(--ink);color:var(--paper);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .header-left{display:flex;align-items:baseline;gap:10px;}
+  header h1{font-family:'Shippori Mincho',serif;font-size:1.3rem;letter-spacing:0.1em;}
+  .header-user{font-size:0.8rem;opacity:0.7;}
+  .header-right{display:flex;align-items:center;gap:10px;}
+  .admin-select{font-family:inherit;font-size:0.8rem;padding:4px 8px;border:1px solid rgba(255,255,255,0.3);border-radius:4px;background:rgba(255,255,255,0.1);color:var(--paper);cursor:pointer;}
+  .admin-select option{background:var(--ink);color:var(--paper);}
+  .btn-logout{background:none;border:1px solid rgba(255,255,255,0.3);color:var(--paper);padding:5px 12px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:0.78rem;transition:background 0.2s;}
+  .btn-logout:hover{background:rgba(255,255,255,0.1);}
+
+  /* ナビ */
+  nav{background:var(--cream);border-bottom:1px solid var(--line);padding:0 20px;display:flex;}
+  nav button{background:none;border:none;border-bottom:3px solid transparent;padding:12px 18px;cursor:pointer;font-family:inherit;font-size:0.85rem;color:var(--ink);opacity:0.55;transition:all 0.2s;}
+  nav button.active{opacity:1;border-bottom-color:var(--accent);font-weight:700;}
+
+  main{padding:24px 20px;max-width:1200px;margin:0 auto;}
+  .page{display:none;}.page.active{display:block;}
+
+  /* 管理者パネル */
+  .admin-panel{background:#f0f4ff;border:1px solid #c0ccee;border-radius:6px;padding:16px;margin-bottom:20px;}
+  .admin-panel h3{font-size:0.85rem;font-weight:700;margin-bottom:12px;opacity:0.7;letter-spacing:0.06em;}
+  .user-table{width:100%;border-collapse:collapse;font-size:0.82rem;margin-bottom:12px;}
+  .user-table th,.user-table td{padding:7px 10px;border:1px solid #d0d8ee;text-align:left;}
+  .user-table th{background:#e0e8ff;font-weight:700;}
+  .btn-danger-sm{background:none;border:1px solid #e0b0b0;color:var(--warn);padding:3px 10px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:0.75rem;}
+  .add-user-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;}
+  .add-user-row input{font-family:inherit;font-size:0.82rem;border:1px solid var(--line);border-radius:4px;padding:6px 10px;width:130px;}
+  .add-user-row input::placeholder{font-size:0.75rem;}
+
+  /* ツールバー */
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+  .company-count{font-size:0.8rem;opacity:0.5;}
+  .btn-primary{background:var(--accent);color:white;border:none;padding:9px 20px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:0.85rem;font-weight:700;letter-spacing:0.05em;transition:background 0.2s;}
+  .btn-primary:hover{background:var(--accent-light);}
+  .sort-bar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+  .sort-bar label{font-size:0.75rem;opacity:0.5;}
+  .sort-bar select{font-family:inherit;font-size:0.78rem;padding:4px 8px;border:1px solid var(--line);border-radius:4px;background:white;cursor:pointer;}
+
+  /* カード */
+  .card-list{display:flex;flex-direction:column;gap:10px;}
+  .card{background:white;border:1px solid var(--line);border-left:4px solid var(--line);border-radius:6px;padding:14px 16px;cursor:pointer;transition:box-shadow 0.2s,border-left-color 0.2s;}
+  .card:hover{box-shadow:0 3px 12px var(--shadow);}
+  .card.priority-high{border-left-color:var(--accent);}.card.priority-mid{border-left-color:var(--accent-light);}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .card-name{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:600;}
+  .card-industry{font-size:0.72rem;background:var(--tag-bg);padding:2px 8px;border-radius:99px;white-space:nowrap;margin-top:2px;}
+  .card-meta{display:flex;gap:14px;margin-top:8px;flex-wrap:wrap;}
+  .card-meta-item{font-size:0.75rem;opacity:0.65;display:flex;gap:4px;align-items:center;}
+  .stars{color:var(--accent);letter-spacing:-1px;font-size:0.85rem;}
+  .status-badge{font-size:0.7rem;padding:2px 8px;border-radius:99px;font-weight:700;letter-spacing:0.04em;}
+  .status-0{background:#e8e0f0;color:#6040a0;}.status-1{background:#eee;color:#888;}
+  .status-2{background:#dceeff;color:#2060a0;}.status-3{background:#fff3cd;color:#856404;}
+  .status-4{background:#d4edda;color:#155724;}.status-5{background:#f8d7da;color:#721c24;}
+  .empty-state{text-align:center;padding:60px 20px;opacity:0.4;font-size:0.9rem;line-height:2;}
+  .loading{text-align:center;padding:40px;opacity:0.4;font-size:0.85rem;}
+
+  /* フォーム */
+  .form-header{display:flex;gap:10px;margin-bottom:24px;align-items:center;}
+  .btn-back{background:none;border:1px solid var(--line);padding:6px 12px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:0.8rem;color:var(--ink);transition:background 0.15s;}
+  .btn-back:hover{background:var(--cream);}
+  .form-title{font-family:'Shippori Mincho',serif;font-size:1.15rem;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:600px){.form-grid{grid-template-columns:1fr;}}
+  .form-full{grid-column:1/-1;}
+  .form-group{display:flex;flex-direction:column;gap:5px;}
+  .form-group label{font-size:0.75rem;font-weight:700;letter-spacing:0.06em;opacity:0.6;text-transform:uppercase;}
+  .form-group input,.form-group select,.form-group textarea{font-family:inherit;font-size:0.9rem;border:1px solid var(--line);border-radius:4px;padding:8px 10px;background:white;color:var(--ink);transition:border-color 0.15s;}
+  .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--accent-light);}
+  .form-group textarea{resize:vertical;min-height:80px;}
+  .star-rating{display:flex;flex-direction:row-reverse;gap:4px;}
+  .star-rating input{display:none;}
+  .star-rating label{font-size:1.4rem;color:var(--line);cursor:pointer;transition:color 0.1s;text-transform:none;letter-spacing:0;opacity:1;font-weight:400;}
+  .star-rating input:checked~label,.star-rating label:hover,.star-rating label:hover~label{color:var(--accent);}
+  .form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:24px;padding-top:16px;border-top:1px solid var(--line);}
+  .btn-danger{background:none;border:1px solid #e0b0b0;color:var(--warn);padding:8px 16px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:0.85rem;margin-right:auto;}
+  .btn-danger:hover{background:#fff0f0;}
+  .section-divider{grid-column:1/-1;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;opacity:0.4;text-transform:uppercase;padding-top:8px;border-top:1px solid var(--line);}
+
+  /* 比較表 */
+  .compare-hint{font-size:0.8rem;opacity:0.5;margin-bottom:8px;}
+  .compare-filter{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;align-items:center;}
+  .compare-filter label{font-size:0.78rem;display:flex;align-items:center;gap:4px;cursor:pointer;padding:3px 10px;border:1px solid var(--line);border-radius:99px;background:white;transition:background 0.15s;}
+  .compare-filter label:hover{background:var(--cream);}
+  .compare-filter input[type=checkbox]{accent-color:var(--accent);}
+  .compare-filter-title{font-size:0.75rem;opacity:0.5;}
+  .compare-table-wrap{overflow-x:auto;}
+  .compare-table-wrap table th:nth-child(1){width:20%;}
+  .compare-table-wrap table th:nth-child(2){width:9%;}
+  .compare-table-wrap table th:nth-child(3){width:11%;}
+  .compare-table-wrap table th:nth-child(4){width:9%;}
+  .compare-table-wrap table th:nth-child(5){width:8%;}
+  .compare-table-wrap table th:nth-child(6){width:8%;}
+  .compare-table-wrap table th:nth-child(7){width:8%;}
+  .compare-table-wrap table th:nth-child(8){width:8%;}
+  .compare-table-wrap table th:nth-child(9){width:5%;}
+  .compare-table-wrap table th:nth-child(10){width:9%;}
+  table{width:100%;border-collapse:collapse;font-size:0.82rem;table-layout:fixed;}
+  th,td{padding:10px 12px;border:1px solid var(--line);text-align:left;vertical-align:top;}
+  th{background:var(--ink);color:var(--paper);font-weight:400;letter-spacing:0.05em;white-space:nowrap;}
+  tr:nth-child(even) td{background:var(--cream);}
+  td{word-break:break-all;}
+  td.company-name-cell{font-family:'Shippori Mincho',serif;font-weight:600;white-space:normal;word-break:break-all;cursor:pointer;color:var(--accent);}
+  td.company-name-cell:hover{text-decoration:underline;}
+  .rating-cell{color:var(--accent);white-space:nowrap;}
+
+  .update-badge{display:inline-block;font-size:0.7rem;background:#fff3cd;color:#856404;border:1px solid #ffe08a;padding:1px 7px;border-radius:99px;margin-left:6px;vertical-align:middle;font-family:'Zen Kaku Gothic New',sans-serif;font-weight:700;}
+  .notif-wrap{position:relative;}
+  .btn-notif{background:none;border:1px solid rgba(255,255,255,0.3);color:var(--paper);padding:5px 12px;border-radius:4px;cursor:pointer;font-size:1rem;position:relative;}
+  .notif-count{position:absolute;top:-6px;right:-6px;background:#e53e3e;color:white;font-size:0.65rem;font-weight:700;min-width:16px;height:16px;border-radius:99px;display:flex;align-items:center;justify-content:center;padding:0 3px;}
+  .notif-panel{position:absolute;right:0;top:calc(100% + 8px);width:320px;background:white;border:1px solid var(--line);border-radius:6px;box-shadow:0 4px 20px var(--shadow);z-index:100;max-height:400px;display:flex;flex-direction:column;}
+  .notif-header{padding:10px 14px;font-size:0.82rem;font-weight:700;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;color:var(--ink);}
+  .notif-close{background:none;border:none;cursor:pointer;font-size:0.85rem;opacity:0.4;}
+  .notif-close:hover{opacity:1;}
+  .notif-list-inner{overflow-y:auto;flex:1;}
+  .notif-item{padding:10px 14px;border-bottom:1px solid var(--line);cursor:pointer;transition:background 0.15s;font-size:0.8rem;color:var(--ink);}
+  .notif-item:hover{background:var(--cream);}
+  .notif-item-name{font-weight:700;font-family:'Shippori Mincho',serif;}
+  .notif-item-meta{font-size:0.72rem;opacity:0.5;margin-top:2px;}
+  .notif-empty{padding:24px;text-align:center;font-size:0.8rem;opacity:0.4;}
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 20px;border-radius:20px;font-size:0.82rem;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:999;}
+  #toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<!-- ログイン画面 -->
+<div id="login-screen" class="login-wrap">
+  <div class="login-box">
+    <div class="login-title">就活メモ帳</div>
+    <div class="login-sub">求人整理ツール</div>
+    <div class="login-group"><label>ユーザー名</label><input type="text" id="login-username" placeholder="例：yamada"></div>
+    <div class="login-group"><label>パスワード</label><input type="password" id="login-password" placeholder="パスワード" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="login-error" id="login-error"></div>
+    <button class="btn-login" onclick="doLogin()">ログイン</button>
+    <div class="setup-toggle" onclick="toggleSetup()">⚙ GAS URL設定</div>
+    <div class="setup-area" id="setup-area">
+      <input type="text" id="gas-url-input" placeholder="https://script.google.com/macros/s/...">
+      <button class="btn-sm" onclick="saveGasUrl()">保存</button>
+      <div class="url-status" id="url-status"></div>
+    </div>
+  </div>
+</div>
+
+<!-- メイン画面 -->
+<div id="main-screen" style="display:none;">
+  <header>
+    <div class="header-left">
+      <h1>就活メモ帳</h1>
+      <span class="header-user" id="header-user"></span>
+    </div>
+    <div class="header-right">
+      <select class="admin-select" id="admin-user-select" style="display:none;" onchange="switchUser()"></select>
+      <div class="notif-wrap">
+        <button class="btn-notif" id="btn-notif" onclick="toggleNotifPanel()">🔔<span class="notif-count" id="notif-count" style="display:none;"></span></button>
+        <div class="notif-panel" id="notif-panel" style="display:none;">
+          <div class="notif-header">通知<button class="notif-close" onclick="toggleNotifPanel()">✕</button></div>
+          <div id="notif-list"></div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">ログアウト</button>
+    </div>
+  </header>
+  <nav>
+    <button class="active" onclick="showPage('list')">一覧</button>
+    <button onclick="showPage('compare')">比較表</button>
+    <button id="admin-tab" onclick="showPage('admin')" style="display:none;">管理</button>
+  </nav>
+  <main>
+    <!-- 一覧 -->
+    <div id="page-list" class="page active">
+      <div class="toolbar">
+        <span class="company-count" id="company-count"></span>
+        <button class="btn-primary" onclick="openForm()">＋ 企業を追加</button>
+      </div>
+      <div class="sort-bar">
+        <label>並び替え</label>
+        <select id="sort-select" onchange="renderList()">
+          <option value="updated">更新順</option>
+          <option value="name">企業名順</option>
+          <option value="overall">総合評価順</option>
+          <option value="status">選考状況順</option>
+        </select>
+      </div>
+      <div id="card-list" class="card-list"></div>
+    </div>
+
+    <!-- フォーム -->
+    <div id="page-form" class="page">
+      <div class="form-header">
+        <button class="btn-back" onclick="unlockAndBack()">← 一覧へ</button>
+        <span class="form-title" id="form-title">企業を追加</span>
+      </div>
+      <div class="form-grid">
+        <div class="form-group form-full"><label>採用ページ・企業HP URL</label><input type="url" id="f-url" placeholder="https://..."></div>
+        <div class="form-group"><label>企業名 *</label><input type="text" id="f-name" placeholder="例：株式会社〇〇"></div>
+        <div class="form-group"><label>業界</label><input type="text" id="f-industry" placeholder="例：IT・通信、製造、医療…"></div>
+        <div class="form-group"><label>勤務地</label><input type="text" id="f-location" placeholder="例：東京都新宿区（リモート可）"></div>
+        <div class="form-group"><label>雇用形態</label>
+          <select id="f-employment"><option value="">─</option><option>正社員</option><option>契約社員</option><option>パート・アルバイト</option><option>その他</option></select>
+        </div>
+        <div class="form-group"><label>給与・待遇メモ</label><input type="text" id="f-salary" placeholder="例：月16〜20万、交通費全額…"></div>
+        <div class="form-group"><label>選考状況</label>
+          <select id="f-status">
+            <option value="0">検討中</option><option value="1">未応募</option><option value="2">書類選考中</option>
+            <option value="3">面接調整中・面接済</option><option value="4">内定</option><option value="5">不採用・辞退</option>
+          </select>
+        </div>
+        <div class="section-divider">業務内容</div>
+        <div class="form-group form-full"><label>業務内容・職種</label><textarea id="f-work" placeholder="どんな仕事か、自分に向いているか、など"></textarea></div>
+        <div class="form-group"><label>業務内容の評価</label>
+          <div class="star-rating"><input type="radio" name="sr-work" id="sr-work-5" value="5"><label for="sr-work-5">★</label><input type="radio" name="sr-work" id="sr-work-4" value="4"><label for="sr-work-4">★</label><input type="radio" name="sr-work" id="sr-work-3" value="3"><label for="sr-work-3">★</label><input type="radio" name="sr-work" id="sr-work-2" value="2"><label for="sr-work-2">★</label><input type="radio" name="sr-work" id="sr-work-1" value="1"><label for="sr-work-1">★</label></div>
+        </div>
+        <div class="section-divider">企業イメージ・風土</div>
+        <div class="form-group form-full"><label>企業イメージ・風土メモ</label><textarea id="f-culture" placeholder="HPや口コミから感じる雰囲気、働きやすさ、など"></textarea></div>
+        <div class="form-group"><label>企業イメージの評価</label>
+          <div class="star-rating"><input type="radio" name="sr-culture" id="sr-culture-5" value="5"><label for="sr-culture-5">★</label><input type="radio" name="sr-culture" id="sr-culture-4" value="4"><label for="sr-culture-4">★</label><input type="radio" name="sr-culture" id="sr-culture-3" value="3"><label for="sr-culture-3">★</label><input type="radio" name="sr-culture" id="sr-culture-2" value="2"><label for="sr-culture-2">★</label><input type="radio" name="sr-culture" id="sr-culture-1" value="1"><label for="sr-culture-1">★</label></div>
+        </div>
+        <div class="section-divider">待遇・配慮</div>
+        <div class="form-group form-full"><label>待遇・合理的配慮メモ</label><textarea id="f-support" placeholder="障害への配慮内容、フレックス・休暇・福利厚生、など"></textarea></div>
+        <div class="form-group"><label>待遇・配慮の評価</label>
+          <div class="star-rating"><input type="radio" name="sr-support" id="sr-support-5" value="5"><label for="sr-support-5">★</label><input type="radio" name="sr-support" id="sr-support-4" value="4"><label for="sr-support-4">★</label><input type="radio" name="sr-support" id="sr-support-3" value="3"><label for="sr-support-3">★</label><input type="radio" name="sr-support" id="sr-support-2" value="2"><label for="sr-support-2">★</label><input type="radio" name="sr-support" id="sr-support-1" value="1"><label for="sr-support-1">★</label></div>
+        </div>
+        <div class="section-divider">総合</div>
+        <div class="form-group"><label>総合評価</label>
+          <div class="star-rating"><input type="radio" name="sr-overall" id="sr-overall-5" value="5"><label for="sr-overall-5">★</label><input type="radio" name="sr-overall" id="sr-overall-4" value="4"><label for="sr-overall-4">★</label><input type="radio" name="sr-overall" id="sr-overall-3" value="3"><label for="sr-overall-3">★</label><input type="radio" name="sr-overall" id="sr-overall-2" value="2"><label for="sr-overall-2">★</label><input type="radio" name="sr-overall" id="sr-overall-1" value="1"><label for="sr-overall-1">★</label></div>
+        </div>
+        <div class="form-group"><label>応募優先度</label>
+          <select id="f-priority"><option value="0">─ 未設定</option><option value="high">高 ★★★</option><option value="mid">中 ★★</option><option value="low">低 ★</option></select>
+        </div>
+        <div class="form-group form-full"><label>自由メモ</label><textarea id="f-memo" placeholder="面接で確認したいこと、直感、懸念点…"></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-danger" id="btn-delete" onclick="deleteCompany()" style="display:none">削除</button>
+        <button class="btn-back" onclick="unlockAndBack()">キャンセル</button>
+        <button class="btn-primary" onclick="saveCompany()">保存</button>
+      </div>
+    </div>
+
+    <!-- 比較表 -->
+    <div id="page-compare" class="page">
+      <p class="compare-hint">登録済み企業の比較表です。企業名をクリックすると詳細を編集できます。</p>
+    <div class="compare-filter" id="compare-filter"></div>
+      <div class="compare-table-wrap">
+        <table>
+          <thead><tr><th>企業名</th><th>業界</th><th>勤務地</th><th>給与メモ</th><th>業務内容</th><th>企業イメージ</th><th>待遇・配慮</th><th>総合</th><th>優先度</th><th>選考状況</th></tr></thead>
+          <tbody id="compare-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 管理タブ（管理者のみ） -->
+    <div id="page-admin" class="page">
+      <div class="admin-panel">
+        <h3>利用者管理</h3>
+        <table class="user-table">
+          <thead><tr><th>ユーザー名</th><th>シート名</th><th></th></tr></thead>
+          <tbody id="user-table-body"></tbody>
+        </table>
+        <div class="add-user-row">
+          <input type="text" id="new-username" placeholder="ユーザー名（半角）">
+          <input type="password" id="new-password" placeholder="パスワード">
+          <input type="text" id="new-sheetname" placeholder="シート名（苗字など）">
+          <button class="btn-sm" onclick="addUser()">追加</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const GAS_URL_KEY='shushoku_gas_url';
+const SESSION_KEY='shushoku_session';
+const STATUS_LABELS=['検討中','未応募','書類選考中','面接中','内定','不採用・辞退'];
+const PRIORITY_LABELS={high:'高',mid:'中',low:'低'};
+
+let gasUrl='',session=null,companies=[],editingId=null,currentSheetName='';
+
+// ─── 初期化 ───
+window.onload=()=>{
+  gasUrl=localStorage.getItem(GAS_URL_KEY)||'';
+  if(gasUrl) document.getElementById('gas-url-input').value=gasUrl;
+
+  const saved=localStorage.getItem(SESSION_KEY);
+  if(saved){
+    try{
+      session=JSON.parse(saved);
+      enterMain();
+    }catch{showLogin();}
+  }else{
+    showLogin();
+  }
+};
+
+function showLogin(){
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('main-screen').style.display='none';
+}
+function enterMain(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('main-screen').style.display='block';
+  document.getElementById('header-user').textContent=session.username+' さん';
+  if(session.role==='admin'){
+    document.getElementById('admin-tab').style.display='inline-block';
+    document.getElementById('admin-user-select').style.display='inline-block';
+    loadUsers();
+  }
+  currentSheetName=session.sheetName;
+  loadFromSheet();
+  startNotifPoll();
+}
+
+function toggleSetup(){
+  const a=document.getElementById('setup-area');
+  a.classList.toggle('open');
+}
+function saveGasUrl(){
+  const url=document.getElementById('gas-url-input').value.trim();
+  if(!url.startsWith('https://script.google.com')){setUrlStatus('URLが正しくないようです。',false);return;}
+  gasUrl=url;localStorage.setItem(GAS_URL_KEY,gasUrl);
+  setUrlStatus('保存しました',true);
+}
+function setUrlStatus(msg,ok){
+  const el=document.getElementById('url-status');el.textContent=msg;
+  el.className='url-status'+(ok===true?' ok':ok===false?' err':'');
+}
+
+async function doLogin(){
+  const username=document.getElementById('login-username').value.trim();
+  const password=document.getElementById('login-password').value;
+  if(!gasUrl){document.getElementById('login-error').textContent='先にGAS URLを設定してください。';return;}
+  if(!username||!password){document.getElementById('login-error').textContent='ユーザー名とパスワードを入力してください。';return;}
+  document.getElementById('login-error').textContent='';
+  try{
+    const result=await api({action:'login',username,password});
+    if(result.error){document.getElementById('login-error').textContent=result.error;return;}
+    session=result;
+    localStorage.setItem(SESSION_KEY,JSON.stringify(session));
+    enterMain();
+  }catch(e){document.getElementById('login-error').textContent='接続に失敗しました。';}
+}
+
+// ─── 通知 ───
+let notifications=[];
+let notifPollTimer=null;
+
+async function loadNotifications(){
+  try{
+    const result=await api({action:'getNotifications'});
+    if(result.error||!result.notifications)return;
+    notifications=result.notifications;
+    renderNotifBadge();
+  }catch(e){}
+}
+
+function renderNotifBadge(){
+  const count=notifications.length;
+  const badge=document.getElementById('notif-count');
+  if(count>0){
+    badge.textContent=count>99?'99+':count;
+    badge.style.display='flex';
+  }else{
+    badge.style.display='none';
+  }
+}
+
+function toggleNotifPanel(){
+  const panel=document.getElementById('notif-panel');
+  const isOpen=panel.style.display!=='none';
+  panel.style.display=isOpen?'none':'flex';
+  panel.style.flexDirection='column';
+  if(!isOpen)renderNotifList();
+}
+
+function renderNotifList(){
+  const list=document.getElementById('notif-list');
+  if(!notifications.length){
+    list.innerHTML='<div class="notif-empty">新しい通知はありません</div>';
+    return;
+  }
+  list.innerHTML='<div class="notif-list-inner">'+notifications.map(n=>{
+    const date=new Date(Number(n.timestamp));
+    const dateStr=date.getMonth()+1+'/'+(date.getDate())+' '+date.getHours()+':'+(String(date.getMinutes()).padStart(2,'0'));
+    return`<div class="notif-item" onclick="goToNotif('${n.id}','${n.companyId}','${esc(n.fromUser)}')">
+      <div class="notif-item-name">${esc(n.companyName)}</div>
+      <div class="notif-item-meta">${esc(n.fromUser)} が更新・${dateStr}</div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+async function goToNotif(notifId, companyId, fromUser){
+  // 既読にする
+  api({action:'markRead',notificationId:notifId});
+  notifications=notifications.filter(n=>n.id!==notifId);
+  renderNotifBadge();
+  toggleNotifPanel();
+
+  // 管理者の場合、fromUserのシートに切り替える
+  if(session.role==='admin'){
+    const sel=document.getElementById('admin-user-select');
+    // fromUserに対応するsheetNameを探す
+    const opt=Array.from(sel.options).find(o=>o.textContent===fromUser||o.value);
+    // usersから該当シートを探す
+    const result=await api({action:'getUsers'});
+    if(result.users){
+      const u=result.users.find(u=>u.username===fromUser);
+      if(u){
+        currentSheetName=u.sheetName;
+        sel.value=u.sheetName;
+        await loadFromSheet();
+      }
+    }
+  }
+
+  // 該当企業を開く
+  const c=companies.find(x=>x.id===companyId||String(x.id)===String(companyId));
+  if(c)openForm(c.id);
+  else showToast('企業が見つかりません（既に削除された可能性があります）');
+}
+
+function startNotifPoll(){
+  loadNotifications();
+  notifPollTimer=setInterval(loadNotifications, 60000); // 1分ごとに確認
+}
+function stopNotifPoll(){
+  if(notifPollTimer){clearInterval(notifPollTimer);notifPollTimer=null;}
+}
+
+function doLogout(){
+  stopNotifPoll();
+  session=null;
+  localStorage.removeItem(SESSION_KEY);
+  companies=[];
+  currentSheetName='';
+  // 管理者UIをリセット
+  document.getElementById('admin-tab').style.display='none';
+  document.getElementById('admin-user-select').style.display='none';
+  document.getElementById('admin-user-select').innerHTML='';
+  showLogin();
+}
+
+// ─── 管理者：利用者切り替え ───
+async function loadUsers(){
+  const result=await api({action:'getUsers'});
+  if(result.error||!result.users)return;
+  const sel=document.getElementById('admin-user-select');
+  sel.innerHTML='<option value="">── 利用者を選択 ──</option>';
+  result.users.forEach(u=>{
+    const opt=document.createElement('option');
+    opt.value=u.sheetName;
+    opt.textContent=u.sheetName;
+    sel.appendChild(opt);
+  });
+  renderUserTable(result.users);
+}
+
+function renderUserTable(users){
+  document.getElementById('user-table-body').innerHTML=users.map(u=>`
+    <tr>
+      <td>${esc(u.username)}</td>
+      <td>${esc(u.sheetName)}</td>
+      <td><span id="del-${esc(u.username)}"><button class="btn-danger-sm" onclick="confirmDeleteUser('${esc(u.username)}')">削除</button></span></td>
+    </tr>`).join('');
+}
+
+function switchUser(){
+  const sheetName=document.getElementById('admin-user-select').value;
+  if(!sheetName){currentSheetName=session.sheetName;}
+  else{currentSheetName=sheetName;}
+  loadFromSheet();
+  showPage('list');
+}
+
+async function addUser(){
+  const username=document.getElementById('new-username').value.trim();
+  const password=document.getElementById('new-password').value.trim();
+  const sheetName=document.getElementById('new-sheetname').value.trim();
+  if(!username||!password||!sheetName){showToast('全項目を入力してください');return;}
+  showToast('追加中…');
+  const result=await api({action:'addUser',userData:{username,password,sheetName,role:'user',token:''}});
+  if(result.error){showToast('エラー：'+result.error);return;}
+  document.getElementById('new-username').value='';
+  document.getElementById('new-password').value='';
+  document.getElementById('new-sheetname').value='';
+  showToast('追加しました');
+  loadUsers();
+}
+
+function confirmDeleteUser(username){
+  const span=document.getElementById('del-'+username);
+  if(!span)return;
+  span.innerHTML=`<span style="font-size:0.75rem;color:var(--warn);margin-right:4px;">本当に削除しますか？</span>`
+    +`<button class="btn-danger-sm" onclick="doDeleteUser('${username}')">削除する</button>`
+    +` <button class="btn-back" style="padding:3px 8px;font-size:0.75rem;" onclick="cancelDeleteUser('${username}')">戻す</button>`;
+}
+function cancelDeleteUser(username){
+  const span=document.getElementById('del-'+username);
+  if(!span)return;
+  span.innerHTML=`<button class="btn-danger-sm" onclick="confirmDeleteUser('${username}')">削除</button>`;
+}
+async function doDeleteUser(username){
+  showToast('削除中…');
+  const result=await api({action:'deleteUser',username});
+  if(result.error){showToast('エラー：'+result.error);return;}
+  showToast('削除しました');loadUsers();
+}
+
+// ─── API ───
+async function api(payload){
+  const body={...payload};
+  if(session)body.token=session.token;
+  if(session&&session.role==='admin'&&currentSheetName){
+    body.sheetName=currentSheetName;
+  }
+  const res=await fetch(gasUrl,{method:'POST',body:JSON.stringify(body)});
+  return res.json();
+}
+
+async function loadFromSheet(){
+  document.getElementById('card-list').innerHTML='<div class="loading">読み込み中…</div>';
+  try{
+    const result=await api({action:'getAll'});
+    if(result.error)throw new Error(result.error);
+    companies=result.companies.map(c=>({...c,rWork:Number(c.rWork)||0,rCulture:Number(c.rCulture)||0,rSupport:Number(c.rSupport)||0,rOverall:Number(c.rOverall)||0,updatedAt:Number(c.updatedAt)||0}));
+    renderList();
+  }catch(e){
+    document.getElementById('card-list').innerHTML='<div class="empty-state">データの読み込みに失敗しました。<br>'+e.message+'</div>';
+  }
+}
+
+// ─── ページ切り替え ───
+async function unlockAndBack(){
+  stopHeartbeat();
+  if(editingId)await api({action:'unlock',id:editingId});
+  editingId=null;
+  showPage('list');
+}
+
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const btns=document.querySelectorAll('nav button');
+  const map={list:0,compare:1,admin:2};
+  if(map[name]!==undefined&&btns[map[name]])btns[map[name]].classList.add('active');
+  if(name==='compare')renderCompare();
+  if(name==='list')renderList();
+}
+
+// ─── 星 ───
+function getStars(name){const el=document.querySelector(`input[name="${name}"]:checked`);return el?parseInt(el.value):0;}
+function setStars(name,val){document.querySelectorAll(`input[name="${name}"]`).forEach(r=>r.checked=false);if(val){const t=document.querySelector(`input[name="${name}"][value="${val}"]`);if(t)t.checked=true;}}
+function renderStars(n){return n?'★'.repeat(n)+'☆'.repeat(5-n):'─';}
+
+// ─── フォーム ───
+async function openForm(id){
+  editingId=id||null;
+
+  // ロック確認（idがある場合のみ）
+  if(id){
+    const lockResult=await api({action:'lock',id});
+    if(lockResult.error==='locked'){
+      showToast('現在「'+lockResult.lockedBy+'」が編集中です');
+      return;
+    }
+  }
+
+  // ここからフォーム表示
+  document.getElementById('form-title').textContent=id?'企業を編集':'企業を追加';
+  document.getElementById('btn-delete').style.display=id?'inline-block':'none';
+  ['name','industry','location','salary','work','culture','support','memo','url'].forEach(f=>{const el=document.getElementById('f-'+f);if(el)el.value='';});
+  document.getElementById('f-employment').value='';
+  document.getElementById('f-status').value='0';
+  document.getElementById('f-priority').value='0';
+  ['work','culture','support','overall'].forEach(n=>setStars('sr-'+n,0));
+  if(id){
+    const c=companies.find(x=>x.id===id);
+    if(c){
+      ['name','industry','location','employment','salary','work','culture','support','memo','url'].forEach(f=>{const el=document.getElementById('f-'+f);if(el)el.value=c[f]||'';});
+      document.getElementById('f-status').value=c.status??'0';
+      document.getElementById('f-priority').value=c.priority||'0';
+      setStars('sr-work',c.rWork);setStars('sr-culture',c.rCulture);setStars('sr-support',c.rSupport);setStars('sr-overall',c.rOverall);
+      // 提案フラグを消す
+      if(c.updatedBy&&c.updatedBy!==session.username){
+        api({action:'clearFlag',id:c.id});
+        c.updatedBy='';
+      }
+    }
+  }
+  if(id)startHeartbeat(id);
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-form').classList.add('active');
+}
+
+let heartbeatTimer=null;
+function startHeartbeat(id){
+  stopHeartbeat();
+  heartbeatTimer=setInterval(()=>{
+    if(id)api({action:'heartbeat',id});
+  },30000); // 30秒ごと
+}
+function stopHeartbeat(){
+  if(heartbeatTimer){clearInterval(heartbeatTimer);heartbeatTimer=null;}
+}
+
+async function saveCompany(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){alert('企業名を入力してください。');return;}
+  const data={
+    id:editingId||(Date.now().toString(36)+Math.random().toString(36).slice(2)),
+    updatedAt:Date.now(),name,
+    url:document.getElementById('f-url').value.trim(),
+    industry:document.getElementById('f-industry').value.trim(),
+    location:document.getElementById('f-location').value.trim(),
+    employment:document.getElementById('f-employment').value,
+    salary:document.getElementById('f-salary').value.trim(),
+    status:document.getElementById('f-status').value,
+    work:document.getElementById('f-work').value.trim(),
+    culture:document.getElementById('f-culture').value.trim(),
+    support:document.getElementById('f-support').value.trim(),
+    memo:document.getElementById('f-memo').value.trim(),
+    priority:document.getElementById('f-priority').value,
+    rWork:getStars('sr-work'),rCulture:getStars('sr-culture'),rSupport:getStars('sr-support'),rOverall:getStars('sr-overall'),
+  };
+  showToast('保存中…');
+  try{
+    const result=await api({action:'save',data});
+    if(result.error)throw new Error(result.error);
+    if(editingId){const idx=companies.findIndex(x=>x.id===editingId);if(idx>=0)companies[idx]=data;else companies.push(data);}
+    else companies.push(data);
+    stopHeartbeat();
+    if(editingId)await api({action:'unlock',id:editingId});
+    showToast('保存しました');showPage('list');
+  }catch(e){showToast('保存に失敗しました：'+e.message);}
+}
+
+async function deleteCompany(){
+  if(!editingId)return;
+  const c=companies.find(x=>x.id===editingId);
+  if(!confirm(`「${c?.name||''}」を削除しますか？`))return;
+  showToast('削除中…');
+  try{
+    const result=await api({action:'delete',id:editingId});
+    if(result.error)throw new Error(result.error);
+    companies=companies.filter(x=>x.id!==editingId);
+    showToast('削除しました');showPage('list');
+  }catch(e){showToast('削除に失敗しました：'+e.message);}
+}
+
+// ─── 一覧 ───
+function renderList(){
+  const sortKey=document.getElementById('sort-select').value;
+  const sorted=[...companies].sort((a,b)=>{
+    if(sortKey==='name')return a.name.localeCompare(b.name,'ja');
+    if(sortKey==='overall')return(b.rOverall||0)-(a.rOverall||0);
+    if(sortKey==='status')return(a.status||0)-(b.status||0);
+    return b.updatedAt-a.updatedAt;
+  });
+  document.getElementById('company-count').textContent=`${companies.length} 社登録済み`;
+  const list=document.getElementById('card-list');
+  if(!sorted.length){list.innerHTML='<div class="empty-state">まだ企業が登録されていません。<br>「＋ 企業を追加」から始めましょう。</div>';return;}
+  list.innerHTML=sorted.map(c=>{
+    const priorClass=c.priority==='high'?'priority-high':c.priority==='mid'?'priority-mid':'';
+    const statusN=parseInt(c.status)||0;
+    return`<div class="card ${priorClass}" onclick="openForm('${c.id}')">
+      <div class="card-top"><div><div class="card-name">${esc(c.name)}${c.updatedBy&&c.updatedBy!==session.username?'<span class="update-badge">🔔 更新</span>':''}</div>${c.industry?`<span class="card-industry">${esc(c.industry)}</span>`:''}</div>
+      <span class="status-badge status-${statusN}">${STATUS_LABELS[statusN]}</span></div>
+      <div class="card-meta">
+        ${c.location?`<span class="card-meta-item">📍 ${esc(c.location)}</span>`:''}
+        ${c.rOverall?`<span class="card-meta-item">総合 <span class="stars">${renderStars(c.rOverall)}</span></span>`:''}
+        ${c.priority&&c.priority!=='0'?`<span class="card-meta-item">優先度：${PRIORITY_LABELS[c.priority]}</span>`:''}
+      </div></div>`;
+  }).join('');
+}
+
+// ─── 比較表 ───
+function renderCompare(){
+  // フィルターUI生成（初回のみ）
+  const filterWrap=document.getElementById('compare-filter');
+  if(!filterWrap.hasChildNodes()){
+    filterWrap.innerHTML='<span class="compare-filter-title">表示する選考状況：</span>'
+      +STATUS_LABELS.map((label,i)=>
+        `<label><input type="checkbox" class="compare-filter-cb" value="${i}" checked onchange="renderCompare()">${label}</label>`
+      ).join('');
+  }
+  // チェックされているstatusを取得
+  const checked=new Set([...document.querySelectorAll('.compare-filter-cb:checked')].map(el=>Number(el.value)));
+
+  const tbody=document.getElementById('compare-tbody');
+  const filtered=companies.filter(c=>checked.has(parseInt(c.status)||0));
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;opacity:0.4;padding:40px">表示できる企業がありません</td></tr>';return;}
+  tbody.innerHTML=filtered.map(c=>`<tr>
+    <td class="company-name-cell" onclick="openForm('${c.id}')">${esc(c.name)}${c.url?` <a href="${esc(c.url)}" target="_blank" onclick="event.stopPropagation()" style="font-size:0.7rem;opacity:0.6;font-family:sans-serif;">🔗</a>`:''}</td>
+    <td>${esc(c.industry)}</td><td>${esc(c.location)}</td><td>${esc(c.salary)}</td>
+    <td class="rating-cell">${renderStars(c.rWork)}</td><td class="rating-cell">${renderStars(c.rCulture)}</td>
+    <td class="rating-cell">${renderStars(c.rSupport)}</td><td class="rating-cell">${renderStars(c.rOverall)}</td>
+    <td>${c.priority&&c.priority!=='0'?PRIORITY_LABELS[c.priority]:'─'}</td>
+    <td><span class="status-badge status-${parseInt(c.status)||0}">${STATUS_LABELS[parseInt(c.status)||0]}</span></td>
+  </tr>`).join('');
+}
+
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),2500);}
+</script>
+</body>
+</html>
