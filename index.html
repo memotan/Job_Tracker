@@ -859,7 +859,7 @@ function addUrlRow(urlVal,labelVal){
 
   const removeBtn=document.createElement('button');
   removeBtn.type='button';removeBtn.className='btn-url-remove';removeBtn.textContent='×';
-  removeBtn.onclick=()=>{row.remove();syncAddBtn();};
+  removeBtn.onclick=()=>{if(confirm('このURL欄を削除しますか？')){{row.remove();syncAddBtn();}}};
 
   row.appendChild(labelInp);row.appendChild(urlInp);row.appendChild(openA);row.appendChild(removeBtn);
   list.appendChild(row);
