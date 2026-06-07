@@ -285,7 +285,6 @@
       <div class="form-header">
         <button class="btn-back" onclick="unlockAndBack()">← 一覧へ</button>
         <span class="form-title" id="form-title">企業を追加</span>
-        <button class="btn-primary" onclick="saveCompany()" style="margin-left:auto;">保存</button>
       </div>
       <div class="form-grid">
         <div class="form-group form-full">
@@ -860,7 +859,7 @@ function addUrlRow(urlVal,labelVal){
 
   const removeBtn=document.createElement('button');
   removeBtn.type='button';removeBtn.className='btn-url-remove';removeBtn.textContent='×';
-  removeBtn.onclick=()=>{if(confirm('このURL欄を削除しますか？')){{row.remove();syncAddBtn();}}};
+  removeBtn.onclick=()=>{if(confirm('このURL欄を削除しますか？')){row.remove();syncAddBtn();}};
 
   row.appendChild(labelInp);row.appendChild(urlInp);row.appendChild(openA);row.appendChild(removeBtn);
   list.appendChild(row);
