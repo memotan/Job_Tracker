@@ -121,6 +121,9 @@
   .card{background:white;border:1px solid var(--line);border-left:4px solid var(--line);border-radius:6px;padding:14px 16px;cursor:pointer;transition:box-shadow 0.2s,border-left-color 0.2s;}
   .card:hover{box-shadow:0 3px 12px var(--shadow);}
   .card.priority-high{border-left-color:var(--accent);}.card.priority-mid{border-left-color:var(--accent-light);}
+  .card.is-botsu{background:#f0f0f0;border-left-color:#ccc !important;opacity:0.55;}
+  .card.is-botsu:hover{opacity:0.8;}
+  .card.is-botsu .card-name{color:#999;}
   .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
   .card-name{font-family:'Shippori Mincho',serif;font-size:1.05rem;font-weight:600;}
   .card-industry{font-size:0.72rem;background:var(--tag-bg);padding:2px 8px;border-radius:99px;white-space:nowrap;margin-top:2px;}
@@ -775,6 +778,9 @@ async function deleteCompany(){
 function renderList(){
   const sortKey=document.getElementById('sort-select').value;
   const sorted=[...companies].sort((a,b)=>{
+    // 「ボツ」(status=1) は並び替えに関わらず常に末尾へ
+    const aBotsu=(parseInt(a.status)||0)===1, bBotsu=(parseInt(b.status)||0)===1;
+    if(aBotsu!==bBotsu)return aBotsu?1:-1;
     if(sortKey==='name')return a.name.localeCompare(b.name,'ja');
     if(sortKey==='overall')return(b.rOverall||0)-(a.rOverall||0);
     if(sortKey==='status')return(a.status||0)-(b.status||0);
@@ -786,7 +792,8 @@ function renderList(){
   list.innerHTML=sorted.map(c=>{
     const priorClass=c.priority==='high'?'priority-high':c.priority==='mid'?'priority-mid':'';
     const statusN=parseInt(c.status)||0;
-    return`<div class="card ${priorClass}" onclick="openForm('${c.id}')">
+    const botsuClass=statusN===1?'is-botsu':'';
+    return`<div class="card ${priorClass} ${botsuClass}" onclick="openForm('${c.id}')">
       <div class="card-top"><div><div class="card-name">${esc(c.name)}${c.updatedBy&&c.updatedBy!==session.username?'<span class="update-badge">🔔 更新</span>':''}</div>${c.industry?`<span class="card-industry">${esc(c.industry)}</span>`:''}</div>
       <span class="status-badge status-${statusN}">${STATUS_LABELS[statusN]}</span></div>
       <div class="card-meta">
