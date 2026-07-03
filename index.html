@@ -134,6 +134,8 @@
   .status-0{background:#e8e0f0;color:#6040a0;}.status-1{background:#eee;color:#888;}
   .status-2{background:#dceeff;color:#2060a0;}.status-3{background:#fff3cd;color:#856404;}
   .status-4{background:#d4edda;color:#155724;}.status-5{background:#f8d7da;color:#721c24;}
+  .status-6{background:#d6f0ee;color:#0e6b64;}
+  .status-7{background:#ffe4c7;color:#8a4b00;}
   .empty-state{text-align:center;padding:60px 20px;opacity:0.4;font-size:0.9rem;line-height:2;}
   .loading{text-align:center;padding:40px;opacity:0.4;font-size:0.85rem;}
 
@@ -306,7 +308,7 @@
         <div class="form-group"><label>選考状況</label>
           <select id="f-status">
             <option value="0">検討中</option><option value="1">ボツ</option><option value="2">書類選考中</option>
-            <option value="3">面接調整中・面接済</option><option value="4">内定</option><option value="5">不採用・辞退</option>
+            <option value="3">面接待ち</option><option value="7">面接結果待ち</option><option value="6">実習待ち</option><option value="4">内定</option><option value="5">不採用・辞退</option>
           </select>
         </div>
         <div class="section-divider">業務内容</div>
@@ -376,7 +378,7 @@
 <script>
 const GAS_URL_KEY='shushoku_gas_url';
 const SESSION_KEY='shushoku_session';
-const STATUS_LABELS=['検討中','ボツ','書類選考中','面接中','内定','不採用・辞退'];
+const STATUS_LABELS=['検討中','ボツ','書類選考中','面接待ち','内定','不採用・辞退','実習待ち','面接結果待ち'];
 const PRIORITY_LABELS={high:'高',mid:'中',low:'低'};
 
 let gasUrl='',session=null,companies=[],editingId=null,currentSheetName='';
