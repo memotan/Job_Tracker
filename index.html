@@ -104,7 +104,7 @@
   .user-table th{background:#e0e8ff;font-weight:700;}
   .btn-danger-sm{background:none;border:1px solid #e0b0b0;color:var(--warn);padding:3px 10px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:0.75rem;}
   .add-user-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;}
-  .add-user-row input{font-family:inherit;font-size:0.82rem;border:1px solid var(--line);border-radius:4px;padding:6px 10px;width:130px;}
+  .add-user-row input,.add-user-row select{font-family:inherit;font-size:0.82rem;border:1px solid var(--line);border-radius:4px;padding:6px 10px;width:130px;}
   .add-user-row input::placeholder{font-size:0.75rem;}
 
   /* ツールバー */
@@ -366,6 +366,7 @@
           <input type="text" id="new-username" placeholder="ユーザー名（半角）">
           <input type="password" id="new-password" placeholder="パスワード">
           <input type="text" id="new-sheetname" placeholder="シート名（苗字など）">
+          <select id="new-role"><option value="user">利用者</option><option value="admin">管理者</option></select>
           <button class="btn-sm" onclick="addUser()">追加</button>
         </div>
       </div>
@@ -540,7 +541,7 @@ async function loadUsers(){
   if(result.error||!result.users)return;
   const sel=document.getElementById('admin-user-select');
   sel.innerHTML='<option value="">── 利用者を選択 ──</option>';
-  result.users.forEach(u=>{
+  result.users.filter(u=>u.role!=='admin').forEach(u=>{
     const opt=document.createElement('option');
     opt.value=u.sheetName;
     opt.textContent=u.sheetName;
@@ -570,13 +571,15 @@ async function addUser(){
   const username=document.getElementById('new-username').value.trim();
   const password=document.getElementById('new-password').value.trim();
   const sheetName=document.getElementById('new-sheetname').value.trim();
+  const role=document.getElementById('new-role').value;
   if(!username||!password||!sheetName){showToast('全項目を入力してください');return;}
   showToast('追加中…');
-  const result=await api({action:'addUser',userData:{username,password,sheetName,role:'user',token:''}});
+  const result=await api({action:'addUser',userData:{username,password,sheetName,role,token:''}});
   if(result.error){showToast('エラー：'+result.error);return;}
   document.getElementById('new-username').value='';
   document.getElementById('new-password').value='';
   document.getElementById('new-sheetname').value='';
+  document.getElementById('new-role').value='user';
   showToast('追加しました');
   loadUsers();
 }
