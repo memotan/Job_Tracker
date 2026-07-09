@@ -366,7 +366,7 @@
           <input type="text" id="new-username" placeholder="ユーザー名（半角）">
           <input type="password" id="new-password" placeholder="パスワード">
           <input type="text" id="new-sheetname" placeholder="シート名（苗字など）">
-          <select id="new-role"><option value="user">利用者</option><option value="admin">管理者</option></select>
+          <select id="new-role" onchange="toggleNewSheetName()"><option value="user">利用者</option><option value="admin">管理者</option></select>
           <button class="btn-sm" onclick="addUser()">追加</button>
         </div>
       </div>
@@ -413,9 +413,11 @@ function enterMain(){
     document.getElementById('admin-user-select').style.display='inline-block';
     document.getElementById('notif-wrap').style.display='block';
     loadUsers();
+    renderList();
+  }else{
+    currentSheetName=session.sheetName;
+    loadFromSheet();
   }
-  currentSheetName=session.sheetName;
-  loadFromSheet();
   startNotifPoll();
 }
 
@@ -561,18 +563,23 @@ function renderUserTable(users){
 
 function switchUser(){
   const sheetName=document.getElementById('admin-user-select').value;
-  if(!sheetName){currentSheetName=session.sheetName;}
-  else{currentSheetName=sheetName;}
+  currentSheetName=sheetName;
+  if(!sheetName){renderList();showPage('list');return;}
   loadFromSheet();
   showPage('list');
+}
+
+function toggleNewSheetName(){
+  const role=document.getElementById('new-role').value;
+  document.getElementById('new-sheetname').style.display=role==='admin'?'none':'';
 }
 
 async function addUser(){
   const username=document.getElementById('new-username').value.trim();
   const password=document.getElementById('new-password').value.trim();
-  const sheetName=document.getElementById('new-sheetname').value.trim();
   const role=document.getElementById('new-role').value;
-  if(!username||!password||!sheetName){showToast('全項目を入力してください');return;}
+  const sheetName=role==='admin'?'':document.getElementById('new-sheetname').value.trim();
+  if(!username||!password||(role==='user'&&!sheetName)){showToast('全項目を入力してください');return;}
   showToast('追加中…');
   const result=await api({action:'addUser',userData:{username,password,sheetName,role,token:''}});
   if(result.error){showToast('エラー：'+result.error);return;}
@@ -580,6 +587,7 @@ async function addUser(){
   document.getElementById('new-password').value='';
   document.getElementById('new-sheetname').value='';
   document.getElementById('new-role').value='user';
+  toggleNewSheetName();
   showToast('追加しました');
   loadUsers();
 }
@@ -666,6 +674,10 @@ function renderStars(n){return n?'★'.repeat(n)+'☆'.repeat(5-n):'─';}
 
 // ─── フォーム ───
 async function openForm(id){
+  if(!id&&session.role==='admin'&&!currentSheetName){
+    showToast('先に利用者を選択してください');
+    return;
+  }
   editingId=id||null;
 
   // ロック確認（idがある場合のみ）
@@ -781,6 +793,11 @@ async function deleteCompany(){
 
 // ─── 一覧 ───
 function renderList(){
+  if(session.role==='admin'&&!currentSheetName){
+    document.getElementById('company-count').textContent='';
+    document.getElementById('card-list').innerHTML='<div class="empty-state">上部の「利用者を選択」から表示する利用者を選んでください。</div>';
+    return;
+  }
   const sortKey=document.getElementById('sort-select').value;
   const sorted=[...companies].sort((a,b)=>{
     // 「ボツ」(status=1) は並び替えに関わらず常に末尾へ
