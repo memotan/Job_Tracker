@@ -15,7 +15,6 @@
       <circle cx="176" cy="58" r="14"/><circle cx="470" cy="58" r="14"/>
       <circle cx="176" cy="454" r="14"/><circle cx="470" cy="454" r="14"/>
     </g>
-    <text x="323" y="190" text-anchor="middle" font-family="'Rockwell','Courier New',serif" font-weight="900" font-size="46" letter-spacing="2" fill="#444" stroke="#444" stroke-width="2">NOTE BOOK</text>
-    <g stroke="#666" stroke-width="3"><line x1="240" y1="290" x2="406" y2="290"/><line x1="240" y1="380" x2="406" y2="380"/></g>
+    <g stroke="#666" stroke-width="3"><line x1="240" y1="230" x2="406" y2="230"/><line x1="240" y1="320" x2="406" y2="320"/></g>
   </g>
 </svg>
