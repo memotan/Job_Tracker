@@ -226,6 +226,70 @@
   .btn-url-remove:hover{border-color:#e05050;color:#e05050;}
   .btn-url-add{background:none;border:1px dashed var(--accent-light);color:var(--accent);border-radius:4px;padding:7px 14px;cursor:pointer;font-family:inherit;font-size:0.8rem;margin-top:2px;transition:background 0.15s;}
   .btn-url-add:hover{background:var(--cream);}
+
+  /* 日程入力（フォーム） */
+  .event-list{display:flex;flex-direction:column;gap:6px;margin-bottom:6px;}
+  .event-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  .event-row .evf-type{width:150px;}
+  .event-row .evf-date{width:150px;}
+  .event-row .evf-time{width:105px;}
+  .event-row .evf-note{flex:1;min-width:140px;}
+
+  /* カレンダー */
+  .cal-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+  .cal-nav{display:flex;align-items:center;gap:8px;}
+  .cal-nav .btn-back{min-width:34px;}
+  .cal-title{font-family:'Shippori Mincho',serif;font-size:1.15rem;min-width:7em;text-align:center;}
+  .cal-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:0.72rem;opacity:0.85;}
+  .cal-legend span{display:inline-flex;align-items:center;gap:4px;}
+  .cal-legend i{width:10px;height:10px;border-radius:2px;display:inline-block;}
+  .ev-deadline{background:var(--warn);}.ev-interview{background:var(--ink);}.ev-briefing{background:var(--ok);}.ev-other{background:#8a8a8a;}
+  .cal-dow,.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));}
+  .cal-dow div{text-align:center;font-size:0.72rem;font-weight:700;padding:6px 0;background:var(--ink);color:var(--paper);letter-spacing:0.05em;}
+  .cal-grid{background:white;border-left:1px solid var(--line);border-top:1px solid var(--line);}
+  .cal-cell{min-height:96px;padding:4px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);cursor:pointer;overflow:hidden;transition:background 0.15s;}
+  .cal-cell:hover{background:var(--cream);}
+  .cal-cell.out{background:#faf8f3;}
+  .cal-cell.out .cal-day{opacity:0.35;}
+  .cal-day{display:inline-block;min-width:1.7em;padding:1px 4px;border-radius:99px;font-size:0.78rem;text-align:center;}
+  .cal-cell.sun .cal-day{color:var(--warn);}
+  .cal-cell.sat .cal-day{color:#2a5d9a;}
+  .cal-cell.today .cal-day{background:var(--accent);color:white;}
+  .cal-cell.selected{outline:2px solid var(--accent);outline-offset:-2px;}
+  .cal-events{display:flex;flex-direction:column;gap:2px;margin-top:3px;}
+  .cal-chip{font-size:0.68rem;line-height:1.35;padding:1px 5px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:white;cursor:pointer;}
+  .cal-chip.extra{display:none;}
+  .cal-chip.ev-inactive{opacity:0.35;text-decoration:line-through;}
+  .cal-more{font-size:0.66rem;opacity:0.6;padding-left:3px;}
+  .cal-hint{font-size:0.8rem;opacity:0.5;padding:10px 2px;}
+  .cal-detail{margin-top:14px;}
+  .cal-detail-box{background:white;border:1px solid var(--line);border-radius:6px;padding:12px 14px;}
+  .cal-detail-head{font-weight:700;font-size:0.9rem;margin-bottom:6px;}
+  .cal-ev-row{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--line);font-size:0.85rem;}
+  .cal-detail-head+.cal-ev-row{border-top:none;}
+  .ev-tag{font-size:0.68rem;font-weight:700;color:white;padding:1px 8px;border-radius:99px;white-space:nowrap;}
+  .cal-ev-time{font-variant-numeric:tabular-nums;opacity:0.7;}
+  .cal-ev-name{font-weight:700;color:var(--accent);cursor:pointer;}
+  .cal-ev-name:hover{text-decoration:underline;}
+  .cal-ev-note{font-size:0.78rem;opacity:0.65;}
+  .cal-add{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);}
+  .cal-add select,.cal-add input{font-family:inherit;font-size:0.8rem;border:1px solid var(--line);border-radius:4px;padding:5px 8px;background:white;color:var(--ink);}
+  .cal-add .qa-note{flex:1;min-width:120px;}
+  .cal-section-title{font-size:0.85rem;font-weight:700;letter-spacing:0.06em;margin:22px 0 8px;opacity:0.7;}
+  .cal-up-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:white;border:1px solid var(--line);border-left:4px solid var(--line);border-radius:6px;padding:8px 12px;margin-bottom:6px;cursor:pointer;font-size:0.85rem;}
+  .cal-up-row:hover{box-shadow:0 3px 12px var(--shadow);}
+  .cal-up-row.ev-b-deadline{border-left-color:var(--warn);}
+  .cal-up-row.ev-b-interview{border-left-color:var(--ink);}
+  .cal-up-row.ev-b-briefing{border-left-color:var(--ok);}
+  .cal-up-date{font-weight:700;min-width:5.5em;}
+  .cal-up-rel{margin-left:auto;font-size:0.72rem;opacity:0.7;}
+  .cal-up-rel.soon{color:var(--warn);font-weight:700;opacity:1;}
+  @media(max-width:600px){
+    .cal-cell{min-height:56px;padding:2px;}
+    .cal-events{flex-direction:row;flex-wrap:wrap;gap:3px;}
+    .cal-chip,.cal-chip.extra{display:block;width:7px;height:7px;padding:0;border-radius:50%;pointer-events:none;}
+    .cal-chip .chip-text,.cal-more{display:none;}
+  }
 </style>
 </head>
 <body>
@@ -270,6 +334,7 @@
   <nav>
     <button class="active" onclick="showPage('list')">一覧</button>
     <button onclick="showPage('compare')">比較表</button>
+    <button onclick="showPage('calendar')">カレンダー</button>
     <button id="admin-tab" onclick="showPage('admin')" style="display:none;">管理</button>
   </nav>
   <main>
@@ -294,7 +359,7 @@
     <!-- フォーム -->
     <div id="page-form" class="page">
     <div class="form-header">
-    <button class="btn-back" onclick="unlockAndBack()">← 一覧へ</button>
+    <button class="btn-back" id="btn-form-back" onclick="unlockAndBack()">← 一覧へ</button>
     <span class="form-title" id="form-title">企業を追加</span>
     <button class="btn-primary" onclick="saveCompany()" style="margin-left:auto;">保存</button>
     </div>
@@ -316,6 +381,11 @@
             <option value="0">検討中</option><option value="1">ボツ</option><option value="2">書類選考中</option>
             <option value="3">面接待ち</option><option value="7">面接結果待ち</option><option value="6">実習待ち</option><option value="4">内定</option><option value="5">不採用・辞退</option>
           </select>
+        </div>
+        <div class="form-group form-full">
+          <label>日程（書類提出期限・面接など）</label>
+          <div class="event-list" id="event-list"></div>
+          <div><button type="button" class="btn-url-add" onclick="addEventRow()">＋ 日程を追加</button></div>
         </div>
         <div class="section-divider">業務内容</div>
         <div class="form-group form-full"><label>業務内容・職種</label><textarea id="f-work" placeholder="どんな仕事か、自分に向いているか、など"></textarea></div>
@@ -360,6 +430,27 @@
       </div>
     </div>
 
+    <!-- カレンダー -->
+    <div id="page-calendar" class="page">
+      <div id="cal-empty" class="empty-state" style="display:none;">上部の「利用者を選択」から表示する利用者を選んでください。</div>
+      <div id="cal-main">
+        <div class="cal-toolbar">
+          <div class="cal-nav">
+            <button class="btn-back" onclick="calMove(-1)">‹</button>
+            <span class="cal-title" id="cal-title"></span>
+            <button class="btn-back" onclick="calMove(1)">›</button>
+            <button class="btn-back" onclick="calToday()">今日</button>
+          </div>
+          <div class="cal-legend" id="cal-legend"></div>
+        </div>
+        <div class="cal-dow"><div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div></div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <div class="cal-detail" id="cal-detail"></div>
+        <h3 class="cal-section-title">今後の予定</h3>
+        <div id="cal-upcoming"></div>
+      </div>
+    </div>
+
     <!-- 管理タブ（管理者のみ） -->
     <div id="page-admin" class="page">
       <div class="admin-panel">
@@ -400,7 +491,7 @@ const SESSION_KEY='shushoku_session';
 const STATUS_LABELS=['検討中','ボツ','書類選考中','面接待ち','内定','不採用・辞退','実習待ち','面接結果待ち'];
 const PRIORITY_LABELS={high:'高',mid:'中',low:'低'};
 
-let gasUrl='',session=null,companies=[],editingId=null,currentSheetName='';
+let gasUrl='',session=null,companies=[],editingId=null,currentSheetName='',returnPage='list';
 
 // ─── 初期化 ───
 window.onload=()=>{
@@ -676,8 +767,10 @@ async function unlockAndBack(){
   stopHeartbeat();
   if(editingId)await api({action:'unlock',id:editingId});
   editingId=null;
-  showPage('list');
+  goBack();
 }
+// フォームを閉じたあと、開いた元のページ（一覧 or カレンダー）へ戻る
+function goBack(){const p=returnPage;returnPage='list';showPage(p);}
 
 function showPage(name){
   const prev=document.querySelector('.page.active');
@@ -689,9 +782,10 @@ function showPage(name){
   if(prevId==='page-form'){next.classList.add('active','anim-flip-left');}
   else{next.classList.add('active','anim-fade');}
   const btns=document.querySelectorAll('nav button');
-  const map={list:0,compare:1,admin:2};
+  const map={list:0,compare:1,calendar:2,admin:3};
   if(map[name]!==undefined&&btns[map[name]])btns[map[name]].classList.add('active');
   if(name==='compare')renderCompare();
+  if(name==='calendar')renderCalendar();
   if(name==='list')renderList();
 }
 
@@ -701,11 +795,12 @@ function setStars(name,val){document.querySelectorAll(`input[name="${name}"]`).f
 function renderStars(n){return n?'★'.repeat(n)+'☆'.repeat(5-n):'─';}
 
 // ─── フォーム ───
-async function openForm(id){
+async function openForm(id,from){
   if(!id&&session.role==='admin'&&!currentSheetName){
     showToast('先に利用者を選択してください');
     return;
   }
+  returnPage=from||'list';
   editingId=id||null;
 
   // ロック確認（idがある場合のみ）
@@ -719,6 +814,7 @@ async function openForm(id){
 
   // ここからフォーム表示
   document.getElementById('form-title').textContent=id?'企業を編集':'企業を追加';
+  document.getElementById('btn-form-back').textContent=returnPage==='calendar'?'← カレンダーへ':'← 一覧へ';
   document.getElementById('btn-delete').style.display=id?'inline-block':'none';
   ['name','industry','location','salary','work','culture','support','memo'].forEach(f=>{const el=document.getElementById('f-'+f);if(el)el.value='';});
   document.getElementById('f-employment').value='';
@@ -743,6 +839,7 @@ async function openForm(id){
   document.querySelectorAll('.page').forEach(p=>{p.classList.remove('active','anim-flip-right','anim-flip-left','anim-fade');});
   const formPage=document.getElementById('page-form');
   formPage.classList.add('active','anim-flip-right');
+  setEventList(id?parseEvents(companies.find(x=>x.id===id)):[]);
   // ページ表示後にURL欄をセット（表示前だとurl-listがnullになるため必ずここで行う）
   if(id){
     const c=companies.find(x=>x.id===id);
@@ -782,6 +879,7 @@ async function saveCompany(){
     id:editingId||(Date.now().toString(36)+Math.random().toString(36).slice(2)),
     updatedAt:Date.now(),name,
     url:JSON.stringify(urls),
+    events:JSON.stringify(getEventList()),
     industry:document.getElementById('f-industry').value.trim(),
     location:document.getElementById('f-location').value.trim(),
     employment:document.getElementById('f-employment').value,
@@ -802,7 +900,7 @@ async function saveCompany(){
     else companies.push(data);
     stopHeartbeat();
     if(editingId)await api({action:'unlock',id:editingId});
-    showToast('保存しました');showPage('list');
+    showToast('保存しました');goBack();
   }catch(e){showToast('保存に失敗しました：'+e.message);}
 }
 
@@ -815,7 +913,7 @@ async function deleteCompany(){
     const result=await api({action:'delete',id:editingId});
     if(result.error)throw new Error(result.error);
     companies=companies.filter(x=>x.id!==editingId);
-    showToast('削除しました');showPage('list');
+    showToast('削除しました');goBack();
   }catch(e){showToast('削除に失敗しました：'+e.message);}
 }
 
@@ -887,7 +985,7 @@ function setUrlList(urls){
   if(!list)return;
   list.innerHTML='';
   const arr=urls.length>0?urls:[{label:'',url:''}];
-  arr.forEach(item=>addUrlRow(item.url||item,item.label||''));
+  arr.forEach(item=>addUrlRow(typeof item==='string'?item:(item.url||''),item.label||''));
   syncAddBtn();
 }
 function addUrlRow(urlVal,labelVal){
@@ -936,6 +1034,197 @@ function syncAddBtn(){
   const btn=document.getElementById('btn-url-add');
   if(!list||!btn)return;
   btn.style.display=list.children.length>=URL_MAX?'none':'inline-block';
+}
+
+// ─── 日程（フォーム入力欄） ───
+const EVENT_TYPES={
+  deadline:{label:'書類提出期限',short:'期限'},
+  interview:{label:'面接',short:'面接'},
+  briefing:{label:'説明会・選考会',short:'説明'},
+  other:{label:'その他',short:'他'}
+};
+const DOW_LABELS=['日','月','火','水','木','金','土'];
+
+function pad2(n){return String(n).padStart(2,'0');}
+function ymd(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
+function parseYmd(s){const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2]);}
+function cmpEvent(a,b){return(a.date+(a.time||'99:99')).localeCompare(b.date+(b.time||'99:99'));}
+
+// 企業の events（JSON文字列）を安全に配列へ。壊れていれば空配列
+function parseEvents(c){
+  if(!c||!c.events)return[];
+  try{
+    const p=typeof c.events==='string'?JSON.parse(c.events):c.events;
+    if(!Array.isArray(p))return[];
+    return p.filter(e=>e&&typeof e==='object'&&/^\d{4}-\d{2}-\d{2}$/.test(e.date||''))
+      .map(e=>({type:EVENT_TYPES[e.type]?e.type:'other',date:e.date,time:e.time||'',note:e.note||''}));
+  }catch(err){return[];}
+}
+
+function setEventList(events){
+  const list=document.getElementById('event-list');
+  if(!list)return;
+  list.innerHTML='';
+  events.forEach(e=>addEventRow(e));
+}
+function addEventRow(ev){
+  const list=document.getElementById('event-list');
+  if(!list)return;
+  ev=(ev&&typeof ev==='object'&&!(ev instanceof Event))?ev:{};
+  const row=document.createElement('div');
+  row.className='event-row';
+
+  const sel=document.createElement('select');
+  sel.className='evf-type';
+  Object.keys(EVENT_TYPES).forEach(k=>{
+    const o=document.createElement('option');
+    o.value=k;o.textContent=EVENT_TYPES[k].label;sel.appendChild(o);
+  });
+  sel.value=EVENT_TYPES[ev.type]?ev.type:'deadline';
+
+  const date=document.createElement('input');
+  date.type='date';date.className='evf-date';date.value=ev.date||'';
+
+  const time=document.createElement('input');
+  time.type='time';time.className='evf-time';time.value=ev.time||'';
+
+  const note=document.createElement('input');
+  note.type='text';note.className='evf-note';note.placeholder='メモ（任意）';note.value=ev.note||'';
+
+  const rm=document.createElement('button');
+  rm.type='button';rm.className='btn-url-remove';rm.textContent='×';
+  rm.onclick=()=>row.remove();
+
+  row.appendChild(sel);row.appendChild(date);row.appendChild(time);row.appendChild(note);row.appendChild(rm);
+  list.appendChild(row);
+}
+// 日付が入っている行だけを、日付順にして返す
+function getEventList(){
+  return [...document.querySelectorAll('#event-list .event-row')].map(row=>({
+    type:row.querySelector('.evf-type').value,
+    date:row.querySelector('.evf-date').value,
+    time:row.querySelector('.evf-time').value,
+    note:row.querySelector('.evf-note').value.trim()
+  })).filter(e=>e.date).sort(cmpEvent);
+}
+
+// ─── カレンダー ───
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calSelected=null,qaBusy=false;
+
+// 全企業の予定を日付順にまとめる（ボツ・不採用/辞退の企業は inactive=true）
+function allEvents(){
+  const out=[];
+  companies.forEach(c=>{
+    const st=parseInt(c.status)||0;
+    parseEvents(c).forEach(e=>out.push({...e,companyId:c.id,companyName:c.name||'',inactive:st===1||st===5}));
+  });
+  return out.sort(cmpEvent);
+}
+function evLabel(e){return EVENT_TYPES[e.type].label+(e.time?' '+e.time:'')+' '+e.companyName+(e.note?'：'+e.note:'');}
+
+function calMove(delta){
+  calMonth+=delta;
+  if(calMonth<0){calMonth=11;calYear--;}
+  else if(calMonth>11){calMonth=0;calYear++;}
+  calSelected=null;
+  renderCalendar();
+}
+function calToday(){
+  const d=new Date();
+  calYear=d.getFullYear();calMonth=d.getMonth();calSelected=ymd(d);
+  renderCalendar();
+}
+function calSelect(ds){calSelected=(calSelected===ds)?null:ds;renderCalendar();}
+function openFormFromCalendar(id){return openForm(id,'calendar');}
+
+function renderCalendar(){
+  const empty=document.getElementById('cal-empty'),main=document.getElementById('cal-main');
+  if(session&&session.role==='admin'&&!currentSheetName){
+    empty.style.display='block';main.style.display='none';return;
+  }
+  empty.style.display='none';main.style.display='block';
+  document.getElementById('cal-title').textContent=calYear+'年'+(calMonth+1)+'月';
+  document.getElementById('cal-legend').innerHTML=Object.keys(EVENT_TYPES).map(k=>`<span><i class="ev-${k}"></i>${EVENT_TYPES[k].label}</span>`).join('');
+
+  const evs=allEvents(),byDate={};
+  evs.forEach(e=>{(byDate[e.date]=byDate[e.date]||[]).push(e);});
+  const today=ymd(new Date());
+  const startDow=new Date(calYear,calMonth,1).getDay();
+  const days=new Date(calYear,calMonth+1,0).getDate();
+  const total=Math.ceil((startDow+days)/7)*7;
+  let html='';
+  for(let i=0;i<total;i++){
+    const d=new Date(calYear,calMonth,i-startDow+1);
+    const ds=ymd(d),dow=d.getDay(),list=byDate[ds]||[];
+    const chips=list.map((e,k)=>`<div class="cal-chip ev-${e.type}${e.inactive?' ev-inactive':''}${k>=3?' extra':''}" onclick="event.stopPropagation();openFormFromCalendar('${e.companyId}')" title="${esc(evLabel(e))}"><span class="chip-text">${e.time?esc(e.time)+' ':''}${esc(e.companyName)}</span></div>`).join('')
+      +(list.length>3?`<div class="cal-more">+${list.length-3}件</div>`:'');
+    html+=`<div class="cal-cell${d.getMonth()!==calMonth?' out':''}${ds===today?' today':''}${ds===calSelected?' selected':''}${dow===0?' sun':dow===6?' sat':''}" onclick="calSelect('${ds}')"><div class="cal-day">${d.getDate()}</div><div class="cal-events">${chips}</div></div>`;
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+  renderCalDetail(byDate);
+  renderUpcoming(evs);
+}
+
+// 選択した日の予定一覧と、その場での予定追加フォーム
+function renderCalDetail(byDate){
+  const box=document.getElementById('cal-detail');
+  if(!calSelected){
+    box.innerHTML='<div class="cal-hint">日付をクリックすると、その日の予定の確認・追加ができます。</div>';
+    return;
+  }
+  const d=parseYmd(calSelected),list=byDate[calSelected]||[];
+  const rows=list.length?list.map(e=>`<div class="cal-ev-row"><span class="ev-tag ev-${e.type}">${EVENT_TYPES[e.type].short}</span>${e.time?`<span class="cal-ev-time">${esc(e.time)}</span>`:''}<span class="cal-ev-name" onclick="openFormFromCalendar('${e.companyId}')">${esc(e.companyName)}</span>${e.note?`<span class="cal-ev-note">${esc(e.note)}</span>`:''}${e.inactive?'<span class="cal-ev-note">（選考終了）</span>':''}</div>`).join('')
+    :'<div class="cal-ev-row cal-ev-note">この日の予定はありません。</div>';
+  const opts=[...companies].sort((a,b)=>(a.name||'').localeCompare(b.name||'','ja')).map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+  const add=companies.length
+    ?`<div class="cal-add"><select id="qa-company"><option value="">企業を選択</option>${opts}</select><select id="qa-type">${Object.keys(EVENT_TYPES).map(k=>`<option value="${k}">${EVENT_TYPES[k].label}</option>`).join('')}</select><input type="time" id="qa-time"><input type="text" id="qa-note" class="qa-note" placeholder="メモ（任意）"><button class="btn-sm" onclick="quickAddEvent()">＋ 追加</button></div>`
+    :'<div class="cal-hint">先に「一覧」から企業を登録してください。</div>';
+  box.innerHTML=`<div class="cal-detail-box"><div class="cal-detail-head">${d.getMonth()+1}月${d.getDate()}日（${DOW_LABELS[d.getDay()]}）</div>${rows}${add}</div>`;
+}
+
+function renderUpcoming(evs){
+  const box=document.getElementById('cal-upcoming');
+  const today=ymd(new Date()),t0=parseYmd(today);
+  const up=evs.filter(e=>!e.inactive&&e.date>=today).slice(0,20);
+  if(!up.length){box.innerHTML='<div class="cal-hint">今後の予定はありません。</div>';return;}
+  box.innerHTML=up.map(e=>{
+    const d=parseYmd(e.date),diff=Math.round((d-t0)/86400000);
+    const rel=diff===0?'今日':diff===1?'明日':'あと'+diff+'日';
+    return`<div class="cal-up-row ev-b-${e.type}" onclick="openFormFromCalendar('${e.companyId}')"><span class="cal-up-date">${d.getMonth()+1}/${d.getDate()}（${DOW_LABELS[d.getDay()]}）</span><span class="ev-tag ev-${e.type}">${EVENT_TYPES[e.type].short}</span>${e.time?`<span class="cal-ev-time">${esc(e.time)}</span>`:''}<span class="cal-ev-name">${esc(e.companyName)}</span>${e.note?`<span class="cal-ev-note">${esc(e.note)}</span>`:''}<span class="cal-up-rel${diff<=3?' soon':''}">${rel}</span></div>`;
+  }).join('');
+}
+
+// カレンダー上で選んだ日に予定を追加する（企業のロック→保存→解除）
+async function quickAddEvent(){
+  if(qaBusy)return;
+  const cid=document.getElementById('qa-company').value;
+  if(!cid){showToast('企業を選択してください');return;}
+  const c=companies.find(x=>x.id===cid);
+  if(!c||!calSelected)return;
+  const ev={type:document.getElementById('qa-type').value,date:calSelected,time:document.getElementById('qa-time').value,note:document.getElementById('qa-note').value.trim()};
+  qaBusy=true;
+  let locked=false;
+  showToast('追加中…');
+  try{
+    const lock=await api({action:'lock',id:cid});
+    if(lock.error==='locked'){showToast('現在「'+lock.lockedBy+'」が編集中です');return;}
+    if(lock.error)throw new Error(lock.error);
+    locked=true;
+    const {lockedBy,lockedAt,...rest}=c; // 古いロック情報は保存データに含めない
+    const events=[...parseEvents(c),ev].sort(cmpEvent);
+    const data={...rest,events:JSON.stringify(events),updatedAt:Date.now()};
+    const result=await api({action:'save',data});
+    if(result.error)throw new Error(result.error);
+    const idx=companies.findIndex(x=>x.id===cid);
+    if(idx>=0)companies[idx]=data;
+    showToast('追加しました');
+    renderCalendar();
+  }catch(e){
+    showToast('追加に失敗しました：'+e.message);
+  }finally{
+    if(locked){try{await api({action:'unlock',id:cid});}catch(e){}}
+    qaBusy=false;
+  }
 }
 
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}

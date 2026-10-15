@@ -65,6 +65,9 @@ GitHub Pages が配信するのは `index.html`。それ以外は手動バック
   status,        // '0'..'5'（STATUS_LABELS と対応）
   work, culture, support, memo,        // 自由記述メモ
   rWork, rCulture, rSupport, rOverall, // 星評価 1..5（0=未設定）
+  events,        // JSON 文字列。[{type, date:'YYYY-MM-DD', time:'HH:MM'|'', note}, ...]（カレンダー用）
+                 // type: 'deadline'(書類提出期限) | 'interview'(面接) | 'briefing'(説明会・選考会) | 'other'
+                 // ※スプレッドシートの各利用者シートに `events` 列（ヘッダー）が必要。無いと保存されない
   priority,      // 'high' | 'mid' | 'low' | '0'
   updatedBy      // 最終更新者。本人以外なら一覧に「🔔 更新」バッジ
 }
@@ -106,7 +109,9 @@ GitHub Pages が配信するのは `index.html`。それ以外は手動バック
 - GAS バックエンドはこのリポジトリ外。プロトコル（`action` / レスポンス形）を変えるときは GAS 側も合わせて更新が必要
 - innerHTML へ値を差し込む箇所が多いが、ユーザー入力は基本 `esc()`（`& < > "` をエスケープ）を通している。
   新規に値を埋め込むときも既存同様 `esc()` を必ず通すこと
-- 画面はログイン画面 / メイン画面（一覧・フォーム・比較表・管理）の単一ページ切り替え（`.page.active`）。
+- 画面はログイン画面 / メイン画面（一覧・フォーム・比較表・カレンダー・管理）の単一ページ切り替え（`.page.active`）。
+- カレンダー（`page-calendar`）は `companies[].events` から月表示を描画。日付選択→その場で予定追加（`quickAddEvent`: lock→save→unlock）もできる。
+  フォームをカレンダーから開いた場合は `returnPage` でカレンダーへ戻る（`goBack()`）。ボツ・不採用/辞退の企業の予定は薄く表示し、「今後の予定」には出さない
   ページ遷移にはフリップ／フェードの CSS アニメーションを使用
 - レスポンシブ対応（`@media(max-width:600px)` でフォームを 1 カラム化）。PC・スマホ両対応
 
