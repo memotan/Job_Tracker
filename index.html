@@ -243,7 +243,7 @@
   .cal-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:0.72rem;opacity:0.85;}
   .cal-legend span{display:inline-flex;align-items:center;gap:4px;}
   .cal-legend i{width:10px;height:10px;border-radius:2px;display:inline-block;}
-  .ev-deadline{background:var(--warn);}.ev-interview{background:var(--ink);}.ev-briefing{background:var(--ok);}.ev-other{background:#8a8a8a;}
+  .ev-deadline{background:var(--warn);}.ev-interview{background:var(--ink);}.ev-briefing{background:var(--ok);}.ev-practicum{background:#0e7c74;}.ev-other{background:#8a8a8a;}
   .cal-dow,.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));}
   .cal-dow div{text-align:center;font-size:0.72rem;font-weight:700;padding:6px 0;background:var(--ink);color:var(--paper);letter-spacing:0.05em;}
   .cal-grid{background:white;border-left:1px solid var(--line);border-top:1px solid var(--line);}
@@ -281,9 +281,14 @@
   .cal-up-row.ev-b-deadline{border-left-color:var(--warn);}
   .cal-up-row.ev-b-interview{border-left-color:var(--ink);}
   .cal-up-row.ev-b-briefing{border-left-color:var(--ok);}
+  .cal-up-row.ev-b-practicum{border-left-color:#0e7c74;}
   .cal-up-date{font-weight:700;min-width:5.5em;}
   .cal-up-rel{margin-left:auto;font-size:0.72rem;opacity:0.7;}
   .cal-up-rel.soon{color:var(--warn);font-weight:700;opacity:1;}
+  .cal-scope{font-family:inherit;font-size:0.8rem;padding:5px 8px;border:1px solid var(--line);border-radius:4px;background:white;color:var(--ink);cursor:pointer;}
+  .cal-status{font-size:0.78rem;opacity:0.7;margin:-4px 0 8px;}
+  .cal-status:empty{display:none;}
+  .cal-ev-owner{font-size:0.72rem;font-weight:700;background:var(--tag-bg);padding:1px 8px;border-radius:99px;white-space:nowrap;}
   @media(max-width:600px){
     .cal-cell{min-height:56px;padding:2px;}
     .cal-events{flex-direction:row;flex-wrap:wrap;gap:3px;}
@@ -432,7 +437,6 @@
 
     <!-- カレンダー -->
     <div id="page-calendar" class="page">
-      <div id="cal-empty" class="empty-state" style="display:none;">上部の「利用者を選択」から表示する利用者を選んでください。</div>
       <div id="cal-main">
         <div class="cal-toolbar">
           <div class="cal-nav">
@@ -440,9 +444,11 @@
             <span class="cal-title" id="cal-title"></span>
             <button class="btn-back" onclick="calMove(1)">›</button>
             <button class="btn-back" onclick="calToday()">今日</button>
+            <select id="cal-scope" class="cal-scope" style="display:none;" onchange="calSetScope(this.value)"></select>
           </div>
           <div class="cal-legend" id="cal-legend"></div>
         </div>
+        <div class="cal-status" id="cal-status"></div>
         <div class="cal-dow"><div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div></div>
         <div class="cal-grid" id="cal-grid"></div>
         <div class="cal-detail" id="cal-detail"></div>
@@ -650,6 +656,7 @@ function doLogout(){
 async function loadUsers(){
   const result=await api({action:'getUsers'});
   if(result.error||!result.users)return;
+  userList=result.users;
   const sel=document.getElementById('admin-user-select');
   sel.innerHTML='<option value="">── 利用者を選択 ──</option>';
   result.users.filter(u=>u.role!=='admin').forEach(u=>{
@@ -734,7 +741,8 @@ async function doDeleteUser(username){
 async function api(payload){
   const body={...payload};
   if(session)body.token=session.token;
-  if(session&&session.role==='admin'&&currentSheetName){
+  // 管理者は選択中の利用者のシートを対象にする。ただし呼び出し側が sheetName を明示した場合はそちらを優先
+  if(session&&session.role==='admin'&&currentSheetName&&!body.sheetName){
     body.sheetName=currentSheetName;
   }
   const res=await fetch(gasUrl,{method:'POST',body:JSON.stringify(body)});
@@ -750,12 +758,14 @@ async function api(payload){
   return data;
 }
 
+function normCompany(c){return{...c,rWork:Number(c.rWork)||0,rCulture:Number(c.rCulture)||0,rSupport:Number(c.rSupport)||0,rOverall:Number(c.rOverall)||0,updatedAt:Number(c.updatedAt)||0};}
+
 async function loadFromSheet(){
   document.getElementById('card-list').innerHTML='<div class="loading">読み込み中…</div>';
   try{
     const result=await api({action:'getAll'});
     if(result.error)throw new Error(result.error);
-    companies=result.companies.map(c=>({...c,rWork:Number(c.rWork)||0,rCulture:Number(c.rCulture)||0,rSupport:Number(c.rSupport)||0,rOverall:Number(c.rOverall)||0,updatedAt:Number(c.updatedAt)||0}));
+    companies=result.companies.map(normCompany);
     renderList();
   }catch(e){
     document.getElementById('card-list').innerHTML='<div class="empty-state">データの読み込みに失敗しました。<br>'+e.message+'</div>';
@@ -770,7 +780,12 @@ async function unlockAndBack(){
   goBack();
 }
 // フォームを閉じたあと、開いた元のページ（一覧 or カレンダー）へ戻る
-function goBack(){const p=returnPage;returnPage='list';showPage(p);}
+function goBack(){
+  const p=returnPage;returnPage='list';
+  // 管理者の全員カレンダーから開いた場合、編集結果をカレンダー用のデータにも反映する
+  if(p==='calendar'&&session&&session.role==='admin'&&allData&&allData[currentSheetName])allData[currentSheetName].companies=companies;
+  showPage(p);
+}
 
 function showPage(name){
   const prev=document.querySelector('.page.active');
@@ -785,7 +800,7 @@ function showPage(name){
   const map={list:0,compare:1,calendar:2,admin:3};
   if(map[name]!==undefined&&btns[map[name]])btns[map[name]].classList.add('active');
   if(name==='compare')renderCompare();
-  if(name==='calendar')renderCalendar();
+  if(name==='calendar'){renderCalendar();if(session&&session.role==='admin')loadAllSheets();}
   if(name==='list')renderList();
 }
 
@@ -1041,6 +1056,7 @@ const EVENT_TYPES={
   deadline:{label:'書類提出期限',short:'期限'},
   interview:{label:'面接',short:'面接'},
   briefing:{label:'説明会・選考会',short:'説明'},
+  practicum:{label:'実習',short:'実習'},
   other:{label:'その他',short:'他'}
 };
 const DOW_LABELS=['日','月','火','水','木','金','土'];
@@ -1110,17 +1126,67 @@ function getEventList(){
 
 // ─── カレンダー ───
 let calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calSelected=null,qaBusy=false;
+// 管理者用：全利用者のデータ。allData = { シート名: {label, companies:[...]} }
+let userList=[],allData=null,calScope='',calLoading=false,calEvs=[];
+const isAdmin=()=>!!session&&session.role==='admin';
+
+// カレンダーの元データ。利用者は自分の企業、管理者は（絞り込み中の）全利用者の企業
+function calSources(){
+  if(isAdmin()){
+    if(!allData)return[];
+    return Object.keys(allData).filter(k=>!calScope||k===calScope).map(k=>({sheet:k,owner:allData[k].label,companies:allData[k].companies}));
+  }
+  return[{sheet:null,owner:'',companies:companies}];
+}
 
 // 全企業の予定を日付順にまとめる（ボツ・不採用/辞退の企業は inactive=true）
 function allEvents(){
   const out=[];
-  companies.forEach(c=>{
+  calSources().forEach(s=>s.companies.forEach(c=>{
     const st=parseInt(c.status)||0;
-    parseEvents(c).forEach(e=>out.push({...e,companyId:c.id,companyName:c.name||'',inactive:st===1||st===5}));
-  });
+    parseEvents(c).forEach(e=>out.push({...e,companyId:c.id,companyName:c.name||'',inactive:st===1||st===5,sheet:s.sheet,owner:s.owner}));
+  }));
   return out.sort(cmpEvent);
 }
-function evLabel(e){return EVENT_TYPES[e.type].label+(e.time?' '+e.time:'')+' '+e.companyName+(e.note?'：'+e.note:'');}
+function evLabel(e){return EVENT_TYPES[e.type].label+(e.time?' '+e.time:'')+' '+(e.owner?e.owner+'：':'')+e.companyName+(e.note?'：'+e.note:'');}
+
+function setCalStatus(msg){const el=document.getElementById('cal-status');if(el)el.textContent=msg||'';}
+function calSetScope(v){calScope=v;calSelected=null;renderCalendar();}
+
+// 管理者：全利用者のシートを並列に読み込む（一部失敗しても、取れた分は表示する）
+async function loadAllSheets(){
+  if(calLoading)return;
+  calLoading=true;
+  if(!allData)setCalStatus('読み込み中…');
+  try{
+    if(!userList.length){
+      const r=await api({action:'getUsers'});
+      if(r.error)throw new Error(r.error);
+      userList=r.users||[];
+    }
+    const targets=userList.filter(u=>u.role!=='admin'&&u.sheetName);
+    const res=await Promise.all(targets.map(async u=>{
+      try{
+        const r=await api({action:'getAll',sheetName:u.sheetName});
+        if(r.error)throw new Error(r.error);
+        return{u,list:(r.companies||[]).map(normCompany)};
+      }catch(e){return{u,err:e.message};}
+    }));
+    const next={},errs=[];
+    res.forEach(x=>{
+      const k=x.u.sheetName;
+      if(x.err){errs.push(k+'（'+x.err+'）');if(allData&&allData[k])next[k]=allData[k];}
+      else next[k]={label:k,companies:x.list};
+    });
+    allData=next;
+    setCalStatus(errs.length?'一部の利用者のデータを読み込めませんでした：'+errs.join('、'):'');
+  }catch(e){
+    setCalStatus('読み込みに失敗しました：'+e.message);
+  }finally{
+    calLoading=false;
+  }
+  if(document.getElementById('page-calendar').classList.contains('active'))renderCalendar();
+}
 
 function calMove(delta){
   calMonth+=delta;
@@ -1135,18 +1201,38 @@ function calToday(){
   renderCalendar();
 }
 function calSelect(ds){calSelected=(calSelected===ds)?null:ds;renderCalendar();}
-function openFormFromCalendar(id){return openForm(id,'calendar');}
+function openFormFromCalendar(id,sheet){
+  if(isAdmin()&&sheet){
+    // 管理者：その利用者を「選択中」にしてフォームを開く（以降のロック・保存はその利用者のシートに対して行われる）
+    currentSheetName=sheet;
+    companies=allData&&allData[sheet]?allData[sheet].companies:[];
+    const sel=document.getElementById('admin-user-select');
+    if(sel)sel.value=sheet;
+  }
+  return openForm(id,'calendar');
+}
+// 予定の番号（calEvs の添字）から企業のフォームを開く。シート名を onclick に埋め込まないための間接参照
+function openCalEvent(i){const e=calEvs[i];if(e)return openFormFromCalendar(e.companyId,e.sheet);}
 
 function renderCalendar(){
-  const empty=document.getElementById('cal-empty'),main=document.getElementById('cal-main');
-  if(session&&session.role==='admin'&&!currentSheetName){
-    empty.style.display='block';main.style.display='none';return;
-  }
-  empty.style.display='none';main.style.display='block';
   document.getElementById('cal-title').textContent=calYear+'年'+(calMonth+1)+'月';
   document.getElementById('cal-legend').innerHTML=Object.keys(EVENT_TYPES).map(k=>`<span><i class="ev-${k}"></i>${EVENT_TYPES[k].label}</span>`).join('');
 
+  // 管理者：表示する利用者の絞り込み（既定は全員）
+  const scopeSel=document.getElementById('cal-scope');
+  if(isAdmin()){
+    const keys=allData?Object.keys(allData):[];
+    if(calScope&&!keys.includes(calScope))calScope='';
+    scopeSel.innerHTML='<option value="">全員</option>'+keys.map(k=>`<option value="${esc(k)}">${esc(allData[k].label)}</option>`).join('');
+    scopeSel.value=calScope;
+    scopeSel.style.display='inline-block';
+  }else{
+    scopeSel.style.display='none';
+  }
+
   const evs=allEvents(),byDate={};
+  evs.forEach((e,i)=>{e._i=i;});
+  calEvs=evs;
   evs.forEach(e=>{(byDate[e.date]=byDate[e.date]||[]).push(e);});
   const today=ymd(new Date());
   const startDow=new Date(calYear,calMonth,1).getDay();
@@ -1156,7 +1242,7 @@ function renderCalendar(){
   for(let i=0;i<total;i++){
     const d=new Date(calYear,calMonth,i-startDow+1);
     const ds=ymd(d),dow=d.getDay(),list=byDate[ds]||[];
-    const chips=list.map((e,k)=>`<div class="cal-chip ev-${e.type}${e.inactive?' ev-inactive':''}${k>=3?' extra':''}" onclick="event.stopPropagation();openFormFromCalendar('${e.companyId}')" title="${esc(evLabel(e))}"><span class="chip-text">${e.time?esc(e.time)+' ':''}${esc(e.companyName)}</span></div>`).join('')
+    const chips=list.map((e,k)=>`<div class="cal-chip ev-${e.type}${e.inactive?' ev-inactive':''}${k>=3?' extra':''}" onclick="event.stopPropagation();openCalEvent(${e._i})" title="${esc(evLabel(e))}"><span class="chip-text">${e.time?esc(e.time)+' ':''}${e.owner?`<b>${esc(e.owner)}</b> `:''}${esc(e.companyName)}</span></div>`).join('')
       +(list.length>3?`<div class="cal-more">+${list.length-3}件</div>`:'');
     html+=`<div class="cal-cell${d.getMonth()!==calMonth?' out':''}${ds===today?' today':''}${ds===calSelected?' selected':''}${dow===0?' sun':dow===6?' sat':''}" onclick="calSelect('${ds}')"><div class="cal-day">${d.getDate()}</div><div class="cal-events">${chips}</div></div>`;
   }
@@ -1173,12 +1259,20 @@ function renderCalDetail(byDate){
     return;
   }
   const d=parseYmd(calSelected),list=byDate[calSelected]||[];
-  const rows=list.length?list.map(e=>`<div class="cal-ev-row"><span class="ev-tag ev-${e.type}">${EVENT_TYPES[e.type].short}</span>${e.time?`<span class="cal-ev-time">${esc(e.time)}</span>`:''}<span class="cal-ev-name" onclick="openFormFromCalendar('${e.companyId}')">${esc(e.companyName)}</span>${e.note?`<span class="cal-ev-note">${esc(e.note)}</span>`:''}${e.inactive?'<span class="cal-ev-note">（選考終了）</span>':''}</div>`).join('')
+  const rows=list.length?list.map(e=>`<div class="cal-ev-row"><span class="ev-tag ev-${e.type}">${EVENT_TYPES[e.type].short}</span>${e.time?`<span class="cal-ev-time">${esc(e.time)}</span>`:''}${e.owner?`<span class="cal-ev-owner">${esc(e.owner)}</span>`:''}<span class="cal-ev-name" onclick="openCalEvent(${e._i})">${esc(e.companyName)}</span>${e.note?`<span class="cal-ev-note">${esc(e.note)}</span>`:''}${e.inactive?'<span class="cal-ev-note">（選考終了）</span>':''}</div>`).join('')
     :'<div class="cal-ev-row cal-ev-note">この日の予定はありません。</div>';
-  const opts=[...companies].sort((a,b)=>(a.name||'').localeCompare(b.name||'','ja')).map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
-  const add=companies.length
+  // 追加先の企業。管理者は利用者ごとにグループ分けし、value に「シート名|企業ID」を持たせる
+  const byName=(a,b)=>(a.name||'').localeCompare(b.name||'','ja');
+  let opts='',hasCompany=false;
+  calSources().forEach(s=>{
+    const os=[...s.companies].sort(byName).map(c=>`<option value="${esc((s.sheet?encodeURIComponent(s.sheet)+'|':'')+c.id)}">${esc(c.name)}</option>`).join('');
+    if(!os)return;
+    hasCompany=true;
+    opts+=s.sheet?`<optgroup label="${esc(s.owner)}">${os}</optgroup>`:os;
+  });
+  const add=hasCompany
     ?`<div class="cal-add"><select id="qa-company"><option value="">企業を選択</option>${opts}</select><select id="qa-type">${Object.keys(EVENT_TYPES).map(k=>`<option value="${k}">${EVENT_TYPES[k].label}</option>`).join('')}</select><input type="time" id="qa-time"><input type="text" id="qa-note" class="qa-note" placeholder="メモ（任意）"><button class="btn-sm" onclick="quickAddEvent()">＋ 追加</button></div>`
-    :'<div class="cal-hint">先に「一覧」から企業を登録してください。</div>';
+    :'<div class="cal-hint">'+(isAdmin()?'登録されている企業がありません。':'先に「一覧」から企業を登録してください。')+'</div>';
   box.innerHTML=`<div class="cal-detail-box"><div class="cal-detail-head">${d.getMonth()+1}月${d.getDate()}日（${DOW_LABELS[d.getDay()]}）</div>${rows}${add}</div>`;
 }
 
@@ -1190,39 +1284,50 @@ function renderUpcoming(evs){
   box.innerHTML=up.map(e=>{
     const d=parseYmd(e.date),diff=Math.round((d-t0)/86400000);
     const rel=diff===0?'今日':diff===1?'明日':'あと'+diff+'日';
-    return`<div class="cal-up-row ev-b-${e.type}" onclick="openFormFromCalendar('${e.companyId}')"><span class="cal-up-date">${d.getMonth()+1}/${d.getDate()}（${DOW_LABELS[d.getDay()]}）</span><span class="ev-tag ev-${e.type}">${EVENT_TYPES[e.type].short}</span>${e.time?`<span class="cal-ev-time">${esc(e.time)}</span>`:''}<span class="cal-ev-name">${esc(e.companyName)}</span>${e.note?`<span class="cal-ev-note">${esc(e.note)}</span>`:''}<span class="cal-up-rel${diff<=3?' soon':''}">${rel}</span></div>`;
+    return`<div class="cal-up-row ev-b-${e.type}" onclick="openCalEvent(${e._i})"><span class="cal-up-date">${d.getMonth()+1}/${d.getDate()}（${DOW_LABELS[d.getDay()]}）</span><span class="ev-tag ev-${e.type}">${EVENT_TYPES[e.type].short}</span>${e.time?`<span class="cal-ev-time">${esc(e.time)}</span>`:''}${e.owner?`<span class="cal-ev-owner">${esc(e.owner)}</span>`:''}<span class="cal-ev-name">${esc(e.companyName)}</span>${e.note?`<span class="cal-ev-note">${esc(e.note)}</span>`:''}<span class="cal-up-rel${diff<=3?' soon':''}">${rel}</span></div>`;
   }).join('');
 }
 
 // カレンダー上で選んだ日に予定を追加する（企業のロック→保存→解除）
 async function quickAddEvent(){
   if(qaBusy)return;
-  const cid=document.getElementById('qa-company').value;
-  if(!cid){showToast('企業を選択してください');return;}
-  const c=companies.find(x=>x.id===cid);
+  const val=document.getElementById('qa-company').value;
+  if(!val){showToast('企業を選択してください');return;}
+  // 管理者の場合 value は「シート名|企業ID」。利用者の場合は企業IDのみ
+  let sheet=null,cid=val;
+  const bar=val.indexOf('|');
+  if(bar>=0){sheet=decodeURIComponent(val.slice(0,bar));cid=val.slice(bar+1);}
+  const list=sheet?(allData&&allData[sheet]?allData[sheet].companies:[]):companies;
+  const c=list.find(x=>x.id===cid);
   if(!c||!calSelected)return;
+  const ctx=sheet?{sheetName:sheet}:{}; // 管理者は対象の利用者のシートを明示（選択中の利用者は変えない）
   const ev={type:document.getElementById('qa-type').value,date:calSelected,time:document.getElementById('qa-time').value,note:document.getElementById('qa-note').value.trim()};
   qaBusy=true;
   let locked=false;
   showToast('追加中…');
   try{
-    const lock=await api({action:'lock',id:cid});
+    const lock=await api({action:'lock',id:cid,...ctx});
     if(lock.error==='locked'){showToast('現在「'+lock.lockedBy+'」が編集中です');return;}
     if(lock.error)throw new Error(lock.error);
     locked=true;
     const {lockedBy,lockedAt,...rest}=c; // 古いロック情報は保存データに含めない
     const events=[...parseEvents(c),ev].sort(cmpEvent);
     const data={...rest,events:JSON.stringify(events),updatedAt:Date.now()};
-    const result=await api({action:'save',data});
+    const result=await api({action:'save',data,...ctx});
     if(result.error)throw new Error(result.error);
-    const idx=companies.findIndex(x=>x.id===cid);
-    if(idx>=0)companies[idx]=data;
+    const idx=list.findIndex(x=>x.id===cid);
+    if(idx>=0)list[idx]=data;
+    // 選択中の利用者の一覧（companies）にも反映する。そうしないと、後でフォームから保存したときに追加した予定が消える
+    if(sheet&&sheet===currentSheetName&&companies!==list){
+      const j=companies.findIndex(x=>x.id===cid);
+      if(j>=0)companies[j]=data;
+    }
     showToast('追加しました');
     renderCalendar();
   }catch(e){
     showToast('追加に失敗しました：'+e.message);
   }finally{
-    if(locked){try{await api({action:'unlock',id:cid});}catch(e){}}
+    if(locked){try{await api({action:'unlock',id:cid,...ctx});}catch(e){}}
     qaBusy=false;
   }
 }
