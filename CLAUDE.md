@@ -65,7 +65,8 @@ GitHub Pages が配信するのは `index.html`。それ以外は手動バック
   status,        // '0'..'5'（STATUS_LABELS と対応）
   work, culture, support, memo,        // 自由記述メモ
   rWork, rCulture, rSupport, rOverall, // 星評価 1..5（0=未設定）
-  events,        // JSON 文字列。[{type, date:'YYYY-MM-DD', time:'HH:MM'|'', note}, ...]（カレンダー用）
+  events,        // JSON 文字列。[{type, date:'YYYY-MM-DD', time:'HH:MM'|'', note, endDate?}, ...]（カレンダー用）
+                 // endDate は任意の終了日（実習のように複数日にわたる予定。date より後のときだけ有効）
                  // type: 'deadline'(書類提出期限) | 'interview'(面接) | 'briefing'(説明会・選考会) | 'practicum'(実習) | 'other'
                  // ※スプレッドシートの各利用者シートに `events` 列（ヘッダー）が必要。無いと保存されない
   priority,      // 'high' | 'mid' | 'low' | '0'

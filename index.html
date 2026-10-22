@@ -232,6 +232,8 @@
   .event-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
   .event-row .evf-type{width:150px;}
   .event-row .evf-date{width:150px;}
+  .event-row .evf-end-wrap{align-items:center;gap:4px;font-size:0.78rem;white-space:nowrap;}
+  .event-row .evf-end{width:150px;}
   .event-row .evf-time{width:105px;}
   .event-row .evf-note{flex:1;min-width:140px;}
 
@@ -275,6 +277,7 @@
   .cal-add{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);}
   .cal-add select,.cal-add input{font-family:inherit;font-size:0.8rem;border:1px solid var(--line);border-radius:4px;padding:5px 8px;background:white;color:var(--ink);}
   .cal-add .qa-note{flex:1;min-width:120px;}
+  .cal-add .qa-end-wrap{align-items:center;gap:4px;font-size:0.8rem;white-space:nowrap;}
   .cal-section-title{font-size:0.85rem;font-weight:700;letter-spacing:0.06em;margin:22px 0 8px;opacity:0.7;}
   .cal-up-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:white;border:1px solid var(--line);border-left:4px solid var(--line);border-radius:6px;padding:8px 12px;margin-bottom:6px;cursor:pointer;font-size:0.85rem;}
   .cal-up-row:hover{box-shadow:0 3px 12px var(--shadow);}
@@ -1066,6 +1069,34 @@ function ymd(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDa
 function parseYmd(s){const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2]);}
 function cmpEvent(a,b){return(a.date+(a.time||'99:99')).localeCompare(b.date+(b.time||'99:99'));}
 
+// ─── 複数日にわたる予定（実習など）。endDate があれば date〜endDate の期間 ───
+const MAX_SPAN_DAYS=60; // 描画する日数の上限（入力ミスで何か月分も塗りつぶさないため）
+function lastDate(e){return e.endDate||e.date;}
+// 終了日として有効か（開始日より後で、開始日から MAX_SPAN_DAYS 日以内）
+function validEnd(date,end){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(end||'')||!date||end<=date)return false;
+  return Math.round((parseYmd(end)-parseYmd(date))/86400000)<MAX_SPAN_DAYS;
+}
+function maxEnd(date){const d=parseYmd(date);return ymd(new Date(d.getFullYear(),d.getMonth(),d.getDate()+MAX_SPAN_DAYS-1));}
+function dayCount(e){return e.endDate?Math.round((parseYmd(e.endDate)-parseYmd(e.date))/86400000)+1:1;}
+function fmtMD(s){const d=parseYmd(s);return(d.getMonth()+1)+'/'+d.getDate();}
+function rangeLabel(e){return e.endDate?fmtMD(e.date)+'〜'+fmtMD(e.endDate)+'（'+dayCount(e)+'日間）':'';}
+// 予定が含まれる日付（YYYY-MM-DD）の一覧
+function eventDays(e){
+  const out=[e.date];
+  if(!e.endDate)return out;
+  const end=parseYmd(e.endDate);
+  let d=parseYmd(e.date);
+  for(let n=0;n<MAX_SPAN_DAYS;n++){
+    d=new Date(d.getFullYear(),d.getMonth(),d.getDate()+1);
+    if(d>end)break;
+    out.push(ymd(d));
+  }
+  return out;
+}
+// ボツ・不採用/辞退の企業（カレンダーの追加候補から外し、予定は薄く表示する）
+function isClosed(c){const st=parseInt(c.status)||0;return st===1||st===5;}
+
 // 企業の events（JSON文字列）を安全に配列へ。壊れていれば空配列
 function parseEvents(c){
   if(!c||!c.events)return[];
@@ -1073,7 +1104,11 @@ function parseEvents(c){
     const p=typeof c.events==='string'?JSON.parse(c.events):c.events;
     if(!Array.isArray(p))return[];
     return p.filter(e=>e&&typeof e==='object'&&/^\d{4}-\d{2}-\d{2}$/.test(e.date||''))
-      .map(e=>({type:EVENT_TYPES[e.type]?e.type:'other',date:e.date,time:e.time||'',note:e.note||''}));
+      .map(e=>{
+        const o={type:EVENT_TYPES[e.type]?e.type:'other',date:e.date,time:e.time||'',note:e.note||''};
+        if(validEnd(e.date,e.endDate))o.endDate=e.endDate;
+        return o;
+      });
   }catch(err){return[];}
 }
 
@@ -1101,6 +1136,22 @@ function addEventRow(ev){
   const date=document.createElement('input');
   date.type='date';date.className='evf-date';date.value=ev.date||'';
 
+  // 終了日（実習のように複数日にわたる予定のときだけ表示）
+  const endWrap=document.createElement('span');
+  endWrap.className='evf-end-wrap';
+  endWrap.appendChild(document.createTextNode('〜 終了日'));
+  const end=document.createElement('input');
+  end.type='date';end.className='evf-end';end.value=ev.endDate||'';
+  endWrap.appendChild(end);
+  const syncEnd=()=>{
+    endWrap.style.display=sel.value==='practicum'?'flex':'none';
+    end.min=date.value||'';
+    end.max=date.value?maxEnd(date.value):'';
+  };
+  sel.addEventListener('change',syncEnd);
+  date.addEventListener('change',syncEnd);
+  syncEnd();
+
   const time=document.createElement('input');
   time.type='time';time.className='evf-time';time.value=ev.time||'';
 
@@ -1111,17 +1162,22 @@ function addEventRow(ev){
   rm.type='button';rm.className='btn-url-remove';rm.textContent='×';
   rm.onclick=()=>row.remove();
 
-  row.appendChild(sel);row.appendChild(date);row.appendChild(time);row.appendChild(note);row.appendChild(rm);
+  row.appendChild(sel);row.appendChild(date);row.appendChild(endWrap);row.appendChild(time);row.appendChild(note);row.appendChild(rm);
   list.appendChild(row);
 }
 // 日付が入っている行だけを、日付順にして返す
 function getEventList(){
-  return [...document.querySelectorAll('#event-list .event-row')].map(row=>({
-    type:row.querySelector('.evf-type').value,
-    date:row.querySelector('.evf-date').value,
-    time:row.querySelector('.evf-time').value,
-    note:row.querySelector('.evf-note').value.trim()
-  })).filter(e=>e.date).sort(cmpEvent);
+  return [...document.querySelectorAll('#event-list .event-row')].map(row=>{
+    const e={
+      type:row.querySelector('.evf-type').value,
+      date:row.querySelector('.evf-date').value,
+      time:row.querySelector('.evf-time').value,
+      note:row.querySelector('.evf-note').value.trim()
+    };
+    const end=row.querySelector('.evf-end').value;
+    if(e.type==='practicum'&&validEnd(e.date,end))e.endDate=end; // 開始日以前・長すぎる終了日は無視
+    return e;
+  }).filter(e=>e.date).sort(cmpEvent);
 }
 
 // ─── カレンダー ───
@@ -1143,12 +1199,11 @@ function calSources(){
 function allEvents(){
   const out=[];
   calSources().forEach(s=>s.companies.forEach(c=>{
-    const st=parseInt(c.status)||0;
-    parseEvents(c).forEach(e=>out.push({...e,companyId:c.id,companyName:c.name||'',inactive:st===1||st===5,sheet:s.sheet,owner:s.owner}));
+    parseEvents(c).forEach(e=>out.push({...e,companyId:c.id,companyName:c.name||'',inactive:isClosed(c),sheet:s.sheet,owner:s.owner}));
   }));
   return out.sort(cmpEvent);
 }
-function evLabel(e){return EVENT_TYPES[e.type].label+(e.time?' '+e.time:'')+' '+(e.owner?e.owner+'：':'')+e.companyName+(e.note?'：'+e.note:'');}
+function evLabel(e){return EVENT_TYPES[e.type].label+(e.endDate?'（'+rangeLabel(e)+'）':'')+(e.time?' '+e.time:'')+' '+(e.owner?e.owner+'：':'')+e.companyName+(e.note?'：'+e.note:'');}
 
 function setCalStatus(msg){const el=document.getElementById('cal-status');if(el)el.textContent=msg||'';}
 function calSetScope(v){calScope=v;calSelected=null;renderCalendar();}
@@ -1233,7 +1288,8 @@ function renderCalendar(){
   const evs=allEvents(),byDate={};
   evs.forEach((e,i)=>{e._i=i;});
   calEvs=evs;
-  evs.forEach(e=>{(byDate[e.date]=byDate[e.date]||[]).push(e);});
+  // 複数日にわたる予定は、期間の各日に登録する
+  evs.forEach(e=>{eventDays(e).forEach(ds=>{(byDate[ds]=byDate[ds]||[]).push(e);});});
   const today=ymd(new Date());
   const startDow=new Date(calYear,calMonth,1).getDay();
   const days=new Date(calYear,calMonth+1,0).getDate();
@@ -1242,7 +1298,10 @@ function renderCalendar(){
   for(let i=0;i<total;i++){
     const d=new Date(calYear,calMonth,i-startDow+1);
     const ds=ymd(d),dow=d.getDay(),list=byDate[ds]||[];
-    const chips=list.map((e,k)=>`<div class="cal-chip ev-${e.type}${e.inactive?' ev-inactive':''}${k>=3?' extra':''}" onclick="event.stopPropagation();openCalEvent(${e._i})" title="${esc(evLabel(e))}"><span class="chip-text">${e.time?esc(e.time)+' ':''}${e.owner?`<b>${esc(e.owner)}</b> `:''}${esc(e.companyName)}</span></div>`).join('')
+    const chips=list.map((e,k)=>{
+      const cont=ds!==e.date; // 複数日の2日目以降
+      return`<div class="cal-chip ev-${e.type}${e.inactive?' ev-inactive':''}${k>=3?' extra':''}" onclick="event.stopPropagation();openCalEvent(${e._i})" title="${esc(evLabel(e))}"><span class="chip-text">${cont?'↳ ':(e.time?esc(e.time)+' ':'')}${e.owner?`<b>${esc(e.owner)}</b> `:''}${esc(e.companyName)}</span></div>`;
+    }).join('')
       +(list.length>3?`<div class="cal-more">+${list.length-3}件</div>`:'');
     html+=`<div class="cal-cell${d.getMonth()!==calMonth?' out':''}${ds===today?' today':''}${ds===calSelected?' selected':''}${dow===0?' sun':dow===6?' sat':''}" onclick="calSelect('${ds}')"><div class="cal-day">${d.getDate()}</div><div class="cal-events">${chips}</div></div>`;
   }
@@ -1259,33 +1318,41 @@ function renderCalDetail(byDate){
     return;
   }
   const d=parseYmd(calSelected),list=byDate[calSelected]||[];
-  const rows=list.length?list.map(e=>`<div class="cal-ev-row"><span class="ev-tag ev-${e.type}">${EVENT_TYPES[e.type].short}</span>${e.time?`<span class="cal-ev-time">${esc(e.time)}</span>`:''}${e.owner?`<span class="cal-ev-owner">${esc(e.owner)}</span>`:''}<span class="cal-ev-name" onclick="openCalEvent(${e._i})">${esc(e.companyName)}</span>${e.note?`<span class="cal-ev-note">${esc(e.note)}</span>`:''}${e.inactive?'<span class="cal-ev-note">（選考終了）</span>':''}</div>`).join('')
+  const rows=list.length?list.map(e=>`<div class="cal-ev-row"><span class="ev-tag ev-${e.type}">${EVENT_TYPES[e.type].short}</span>${e.time?`<span class="cal-ev-time">${esc(e.time)}</span>`:''}${e.owner?`<span class="cal-ev-owner">${esc(e.owner)}</span>`:''}<span class="cal-ev-name" onclick="openCalEvent(${e._i})">${esc(e.companyName)}</span>${e.endDate?`<span class="cal-ev-note">${rangeLabel(e)}</span>`:''}${e.note?`<span class="cal-ev-note">${esc(e.note)}</span>`:''}${e.inactive?'<span class="cal-ev-note">（選考終了）</span>':''}</div>`).join('')
     :'<div class="cal-ev-row cal-ev-note">この日の予定はありません。</div>';
-  // 追加先の企業。管理者は利用者ごとにグループ分けし、value に「シート名|企業ID」を持たせる
+  // 追加先の企業（ボツ・不採用/辞退は除く）。管理者は利用者ごとにグループ分けし、value に「シート名|企業ID」を持たせる
   const byName=(a,b)=>(a.name||'').localeCompare(b.name||'','ja');
   let opts='',hasCompany=false;
   calSources().forEach(s=>{
-    const os=[...s.companies].sort(byName).map(c=>`<option value="${esc((s.sheet?encodeURIComponent(s.sheet)+'|':'')+c.id)}">${esc(c.name)}</option>`).join('');
+    const os=s.companies.filter(c=>!isClosed(c)).sort(byName).map(c=>`<option value="${esc((s.sheet?encodeURIComponent(s.sheet)+'|':'')+c.id)}">${esc(c.name)}</option>`).join('');
     if(!os)return;
     hasCompany=true;
     opts+=s.sheet?`<optgroup label="${esc(s.owner)}">${os}</optgroup>`:os;
   });
   const add=hasCompany
-    ?`<div class="cal-add"><select id="qa-company"><option value="">企業を選択</option>${opts}</select><select id="qa-type">${Object.keys(EVENT_TYPES).map(k=>`<option value="${k}">${EVENT_TYPES[k].label}</option>`).join('')}</select><input type="time" id="qa-time"><input type="text" id="qa-note" class="qa-note" placeholder="メモ（任意）"><button class="btn-sm" onclick="quickAddEvent()">＋ 追加</button></div>`
-    :'<div class="cal-hint">'+(isAdmin()?'登録されている企業がありません。':'先に「一覧」から企業を登録してください。')+'</div>';
+    ?`<div class="cal-add"><select id="qa-company"><option value="">企業を選択</option>${opts}</select><select id="qa-type" onchange="qaTypeChanged()">${Object.keys(EVENT_TYPES).map(k=>`<option value="${k}">${EVENT_TYPES[k].label}</option>`).join('')}</select><span class="qa-end-wrap" id="qa-end-wrap" style="display:none;">〜 終了日<input type="date" id="qa-end" min="${calSelected}" max="${maxEnd(calSelected)}"></span><input type="time" id="qa-time"><input type="text" id="qa-note" class="qa-note" placeholder="メモ（任意）"><button class="btn-sm" onclick="quickAddEvent()">＋ 追加</button></div>`
+    :'<div class="cal-hint">予定を追加できる企業がありません（ボツ・不採用の企業は対象外です）。'+(isAdmin()?'':'先に「一覧」から企業を登録してください。')+'</div>';
   box.innerHTML=`<div class="cal-detail-box"><div class="cal-detail-head">${d.getMonth()+1}月${d.getDate()}日（${DOW_LABELS[d.getDay()]}）</div>${rows}${add}</div>`;
 }
 
 function renderUpcoming(evs){
   const box=document.getElementById('cal-upcoming');
   const today=ymd(new Date()),t0=parseYmd(today);
-  const up=evs.filter(e=>!e.inactive&&e.date>=today).slice(0,20);
+  // 実施中の複数日の予定（開始済みで終了日が今日以降）も含める
+  const up=evs.filter(e=>!e.inactive&&lastDate(e)>=today).slice(0,20);
   if(!up.length){box.innerHTML='<div class="cal-hint">今後の予定はありません。</div>';return;}
   box.innerHTML=up.map(e=>{
     const d=parseYmd(e.date),diff=Math.round((d-t0)/86400000);
-    const rel=diff===0?'今日':diff===1?'明日':'あと'+diff+'日';
-    return`<div class="cal-up-row ev-b-${e.type}" onclick="openCalEvent(${e._i})"><span class="cal-up-date">${d.getMonth()+1}/${d.getDate()}（${DOW_LABELS[d.getDay()]}）</span><span class="ev-tag ev-${e.type}">${EVENT_TYPES[e.type].short}</span>${e.time?`<span class="cal-ev-time">${esc(e.time)}</span>`:''}${e.owner?`<span class="cal-ev-owner">${esc(e.owner)}</span>`:''}<span class="cal-ev-name">${esc(e.companyName)}</span>${e.note?`<span class="cal-ev-note">${esc(e.note)}</span>`:''}<span class="cal-up-rel${diff<=3?' soon':''}">${rel}</span></div>`;
+    const rel=diff<0?'実施中':diff===0?'今日':diff===1?'明日':'あと'+diff+'日';
+    const dateLabel=e.endDate?fmtMD(e.date)+'〜'+fmtMD(e.endDate):d.getMonth()+1+'/'+d.getDate()+'（'+DOW_LABELS[d.getDay()]+'）';
+    return`<div class="cal-up-row ev-b-${e.type}" onclick="openCalEvent(${e._i})"><span class="cal-up-date">${dateLabel}</span><span class="ev-tag ev-${e.type}">${EVENT_TYPES[e.type].short}</span>${e.time?`<span class="cal-ev-time">${esc(e.time)}</span>`:''}${e.owner?`<span class="cal-ev-owner">${esc(e.owner)}</span>`:''}<span class="cal-ev-name">${esc(e.companyName)}</span>${e.note?`<span class="cal-ev-note">${esc(e.note)}</span>`:''}<span class="cal-up-rel${diff<=3?' soon':''}">${rel}</span></div>`;
   }).join('');
+}
+
+// 追加フォーム：種類が「実習」のときだけ終了日の欄を出す
+function qaTypeChanged(){
+  const wrap=document.getElementById('qa-end-wrap');
+  if(wrap)wrap.style.display=document.getElementById('qa-type').value==='practicum'?'flex':'none';
 }
 
 // カレンダー上で選んだ日に予定を追加する（企業のロック→保存→解除）
@@ -1302,6 +1369,14 @@ async function quickAddEvent(){
   if(!c||!calSelected)return;
   const ctx=sheet?{sheetName:sheet}:{}; // 管理者は対象の利用者のシートを明示（選択中の利用者は変えない）
   const ev={type:document.getElementById('qa-type').value,date:calSelected,time:document.getElementById('qa-time').value,note:document.getElementById('qa-note').value.trim()};
+  if(ev.type==='practicum'){
+    const end=document.getElementById('qa-end').value;
+    if(end&&end<calSelected){showToast('終了日は開始日（'+fmtMD(calSelected)+'）以降にしてください');return;}
+    if(end&&end>calSelected){
+      if(!validEnd(calSelected,end)){showToast('終了日は開始日から'+MAX_SPAN_DAYS+'日以内にしてください');return;}
+      ev.endDate=end;
+    }
+  }
   qaBusy=true;
   let locked=false;
   showToast('追加中…');
