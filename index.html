@@ -944,9 +944,9 @@ function renderList(){
   }
   const sortKey=document.getElementById('sort-select').value;
   const sorted=[...companies].sort((a,b)=>{
-    // 「ボツ」(status=1) は並び替えに関わらず常に末尾へ
-    const aBotsu=(parseInt(a.status)||0)===1, bBotsu=(parseInt(b.status)||0)===1;
-    if(aBotsu!==bBotsu)return aBotsu?1:-1;
+    // 「ボツ」(status=1)・「不採用・辞退」(status=5) は並び替えに関わらず常に末尾へ
+    const aClosed=isClosed(a), bClosed=isClosed(b);
+    if(aClosed!==bClosed)return aClosed?1:-1;
     if(sortKey==='name')return a.name.localeCompare(b.name,'ja');
     if(sortKey==='overall')return(b.rOverall||0)-(a.rOverall||0);
     if(sortKey==='status')return(a.status||0)-(b.status||0);
